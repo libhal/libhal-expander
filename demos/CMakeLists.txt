@@ -18,14 +18,14 @@ project(demos LANGUAGES CXX)
 
 libhal_build_demos(
   DEMOS
-  __device__
+  expander
 
   INCLUDES
   .
 
   PACKAGES
-  libhal-__device__
+  libhal-expander
 
   LINK_LIBRARIES
-  libhal::__device__
+  libhal::expander
 )
