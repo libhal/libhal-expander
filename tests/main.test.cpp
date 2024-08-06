@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace hal::__device__ {     // NOLINT
-extern void __device___test();  // NOLINT
-}  // namespace hal::__device__
+namespace hal::expander {
+extern void expander_test();
+}  // namespace hal::expander
 
 int main()
 {
-  hal::__device__::__device___test();
+  hal::expander::expander_test();
 }
