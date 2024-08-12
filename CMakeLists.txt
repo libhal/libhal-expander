@@ -19,9 +19,9 @@ libhal_test_and_make_library(
   LIBRARY_NAME libhal-expander
 
   SOURCES
-  src/expander.cpp
+  src/pca9685.cpp
 
   TEST_SOURCES
-  tests/expander.test.cpp
+  tests/pca9685.test.cpp
   tests/main.test.cpp
 )

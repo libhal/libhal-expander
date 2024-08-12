@@ -12,11 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace hal::expander {
-extern void expander_test();
-}  // namespace hal::expander
-
 int main()
 {
-  hal::expander::expander_test();
 }

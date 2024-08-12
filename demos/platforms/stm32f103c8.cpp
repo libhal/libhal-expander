@@ -48,5 +48,6 @@ resource_list initialize_platform()
     .console = &uart1,
     .clock = &counter,
     .status_led = &led,
+    // no i2c yet!
   };
 }

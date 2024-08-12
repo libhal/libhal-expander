@@ -12,7 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "libhal-expander/expander.hpp"
+#include <libhal-expander/pca9685.hpp>
+
+#include <boost/ut.hpp>
 
 namespace hal::expander {
+boost::ut::suite test_pca9685 = []() {
+  using namespace boost::ut;
+  using namespace std::literals;
+
+  "pca9685::pca9685()"_test = []() {
+    // Setup
+    // Exercise
+    // Verify
+  };
+};
 }  // namespace hal::expander
