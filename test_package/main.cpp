@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <libhal-expander/expander.hpp>
+#include <libhal-expander/pca9685.hpp>
 
 int main()
 {
-  hal::expander::expander_replace_me bar;
+  // fill out later
 }

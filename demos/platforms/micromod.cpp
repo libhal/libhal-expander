@@ -27,5 +27,7 @@ resource_list initialize_platform()
     .console = &hal::micromod::v1::console(hal::buffer<128>),
     .clock = &hal::micromod::v1::uptime_clock(),
     .status_led = &hal::micromod::v1::led(),
+    // NOTE: no i2c yet! Will add after mod-stm32f1-v4
+    // .i2c = &hal::micromod::v1::i2c(),
   };
 }

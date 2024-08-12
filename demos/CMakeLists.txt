@@ -18,7 +18,7 @@ project(demos LANGUAGES CXX)
 
 libhal_build_demos(
   DEMOS
-  expander
+  pca9685
 
   INCLUDES
   .

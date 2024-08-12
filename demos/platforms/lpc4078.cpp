@@ -17,11 +17,12 @@
 #include <libhal-armcortex/system_control.hpp>
 #include <libhal-lpc40/clock.hpp>
 #include <libhal-lpc40/constants.hpp>
+#include <libhal-lpc40/i2c.hpp>
 #include <libhal-lpc40/output_pin.hpp>
 #include <libhal-lpc40/uart.hpp>
 #include <libhal-util/as_bytes.hpp>
 
-#include "../resource_list.hpp"
+#include <resource_list.hpp>
 
 resource_list initialize_platform()
 {
@@ -44,10 +45,15 @@ resource_list initialize_platform()
 
   static hal::lpc40::output_pin led(1, 10);
 
+  static hal::lpc40::i2c i2c(2,
+                             hal::i2c::settings{
+                               .clock_rate = 100.0_kHz,
+                             });
   return {
     .reset = []() { hal::cortex_m::reset(); },
     .console = &uart0,
     .clock = &counter,
     .status_led = &led,
+    .i2c = &i2c,
   };
 }
