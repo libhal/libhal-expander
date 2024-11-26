@@ -25,5 +25,6 @@ libhal_test_and_make_library(
 
   TEST_SOURCES
   tests/pca9685.test.cpp
+  tests/tla2528.test.cpp
   tests/main.test.cpp
 )
