@@ -2,9 +2,9 @@
 #include <libhal/error.hpp>
 #include <libhal/input_pin.hpp>
 #include <libhal/units.hpp>
-#include <tla2528_adapters.hpp>
+#include <libhal-expander/tla2528_adapters.hpp>
 
-namespace sjsu::drivers {
+namespace hal::expander {
 
 tla2528_output_pin make_output_pin(tla2528& p_tla2528,
                                    hal::byte const p_channel,
@@ -118,4 +118,4 @@ float tla2528_adc::driver_read()
 {
   return m_tla2528->get_analog_in(m_channel);
 }
-}  // namespace sjsu::drivers
+}  // namespace hal::expander

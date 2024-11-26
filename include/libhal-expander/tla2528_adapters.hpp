@@ -2,9 +2,9 @@
 #include <libhal/adc.hpp>
 #include <libhal/input_pin.hpp>
 #include <libhal/output_pin.hpp>
-#include <tla2528.hpp>
+#include <libhal-expander/tla2528.hpp>
 
-namespace sjsu::drivers {
+namespace hal::expander {
 
 class tla2528_output_pin : public hal::output_pin
 {
@@ -106,4 +106,4 @@ private:
  */
 tla2528_adc make_adc(tla2528& p_tla2528, hal::byte p_channel);
 
-}  // namespace sjsu::drivers
+}  // namespace hal::expander

@@ -3,7 +3,7 @@
 #include <libhal-util/i2c.hpp>
 #include <libhal/error.hpp>
 #include <libhal/units.hpp>
-#include <tla2528.hpp>
+#include <libhal-expander/tla2528.hpp>
 
 namespace {
 enum op_codes : hal::byte
@@ -39,7 +39,7 @@ enum register_addresses : hal::byte
   auto_seq_ch_sel = 0x12
 };
 }  // namespace
-namespace sjsu::drivers {
+namespace hal::expander {
 
 tla2528::tla2528(hal::i2c& p_i2c, hal::byte p_i2c_address)
   : m_i2c_bus(p_i2c)
@@ -183,4 +183,4 @@ void tla2528::throw_if_invalid_channel(hal::byte p_channel)
   }
 }
 
-}  // namespace sjsu::drivers
+}  // namespace hal::expander

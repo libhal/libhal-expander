@@ -3,7 +3,7 @@
 #include <libhal/steady_clock.hpp>
 #include <libhal/units.hpp>
 
-namespace sjsu::drivers {
+namespace hal::expander {
 
 // adapters
 class tla2528_adc;
@@ -175,4 +175,4 @@ private:
   hal::byte m_object_created = 0x00;  // tracks adapter channel reservations
   hal::byte m_gpo_value = 0x00;
 };
-}  // namespace sjsu::drivers
+}  // namespace hal::expander
