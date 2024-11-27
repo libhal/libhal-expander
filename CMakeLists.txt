@@ -20,8 +20,11 @@ libhal_test_and_make_library(
 
   SOURCES
   src/pca9685.cpp
+  src/tla2528.cpp
+  src/tla2528_adapters.cpp
 
   TEST_SOURCES
   tests/pca9685.test.cpp
+  tests/tla2528.test.cpp
   tests/main.test.cpp
 )
