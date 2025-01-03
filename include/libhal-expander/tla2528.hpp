@@ -43,14 +43,10 @@ public:
    * @brief set what service a pin will provide
    *
    * @param p_mode tla2528::pin_mode enum of desired pin mode
-   *
    * @param p_channel which pin to configure
-   *
    * @throws hal::argument_out_of_domain - if p_channel out of range (>7)
-   *
    * @throws hal::resource_unavailable_try_again - if adapters are made for a
    * pin an exception may be thrown to prevent invalid behavior
-   *
    * @throws hal::no_such_device - no device responded on i2c bus
    */
   void set_pin_mode(pin_mode p_mode, hal::byte p_channel);
@@ -59,11 +55,8 @@ public:
    * @brief set digital output level pin
    *
    * @param p_channel pin to set output
-   *
    * @param p_high the output level of the pin, true is high, false is low.
-   *
    * @throws hal::argument_out_of_domain - if p_channel out of range (>7)
-   *
    * @throws hal::no_such_device - no device responded on i2c bus
    *
    * The device will write to a register that caches the desired output state.
@@ -106,9 +99,7 @@ public:
    * @return The byte is used as a bit field of bool values to give the pins'
    * register. i.e the 0th bit in the byte will be the 0 pin's stored value. If
    * a bit is 1 it is high. If the bit is 0 it is low.
-   *
    * @throws hal::no_such_device - no device responded on i2c bus
-   *
    * If the pin is not set to output pin the returned state will be used once it
    * changes to an output pin.
    */
@@ -118,9 +109,7 @@ public:
    * @brief read the digital level of a pins
    *
    * @return if the pin's digital read value is high.
-   *
    * @throws hal::argument_out_of_domain - if p_channel out of range. (>7)
-   *
    * @throws hal::no_such_device - no device responded on i2c bus
    *
    * If a pin is not set to digital input or output the returned value may not
@@ -133,7 +122,6 @@ public:
    * @return The byte is used as a bit field of bool values to give the pins'
    * digital read values. i.e the 0th bit in the byte will be the 0 pin's stored
    * value. If a bit is 1 it is high. If the bit is 0 it is low.
-   *
    * @throws hal::no_such_device - no device responded on i2c bus
    *
    * If the pin is not set to digital input or output the returned value may not
@@ -145,11 +133,8 @@ public:
    * @brief read the analog input of a pin.
    *
    * @param p_channel if out of range (>7) an exception will be thrown
-   *
    * @return adc reading as a float between 0 and 1 inclusive
-   *
    * @throws hal::argument_out_of_domain - if p_channel out of range. (>7)
-   *
    * @throws hal::no_such_device - no device responded on i2c bus
    *
    * If the pin is not set to analog input the returned value may not correlate
