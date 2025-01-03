@@ -1,18 +1,18 @@
 #include <array>
+
+#include <libhal-expander/tla2528.hpp>
+#include <libhal-expander/tla2528_adapters.hpp>
 #include <libhal-util/bit.hpp>
 #include <libhal-util/i2c.hpp>
 #include <libhal-util/serial.hpp>
 #include <libhal-util/steady_clock.hpp>
 #include <libhal/output_pin.hpp>
 #include <libhal/units.hpp>
-#include <libhal-expander/tla2528.hpp>
-#include <libhal-expander/tla2528_adapters.hpp>
+
 #include <resource_list.hpp>
 
 using namespace hal::literals;
 using namespace std::chrono_literals;
-
-namespace sjsu::drivers {
 
 void application(resource_list& p_map)
 {
@@ -36,8 +36,8 @@ void application(resource_list& p_map)
     make_output_pin(gpo_expander, 7, output_pin_config)
   };
 
-  hal::byte counter =
-    0;  // output counts in binary to go though all out put combinations
+  // output counts in binary to go though all out put combinations
+  hal::byte counter = 0;
   hal::print(terminal, "Starting Binary Count\n");
   while (true) {
     counter++;
@@ -48,4 +48,3 @@ void application(resource_list& p_map)
     hal::delay(steady_clock, 200ms);
   }
 }
-}  // namespace sjsu::drivers
