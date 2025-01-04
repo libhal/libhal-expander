@@ -20,18 +20,15 @@ void application(resource_list& p_map)
   auto& i2c = *p_map.i2c.value();
   auto& steady_clock = *p_map.clock.value();
   auto gpi_expander = hal::expander::tla2528(i2c);
-  constexpr hal::input_pin::settings input_pin_config = {
-    .resistor = hal::pin_resistor::none
-  };
   std::array<hal::expander::tla2528_input_pin, 8> gpis{
-    make_input_pin(gpi_expander, 0, input_pin_config),
-    make_input_pin(gpi_expander, 1, input_pin_config),
-    make_input_pin(gpi_expander, 2, input_pin_config),
-    make_input_pin(gpi_expander, 3, input_pin_config),
-    make_input_pin(gpi_expander, 4, input_pin_config),
-    make_input_pin(gpi_expander, 5, input_pin_config),
-    make_input_pin(gpi_expander, 6, input_pin_config),
-    make_input_pin(gpi_expander, 7, input_pin_config)
+    make_input_pin(gpi_expander, 0),
+    make_input_pin(gpi_expander, 1),
+    make_input_pin(gpi_expander, 2),
+    make_input_pin(gpi_expander, 3),
+    make_input_pin(gpi_expander, 4),
+    make_input_pin(gpi_expander, 5),
+    make_input_pin(gpi_expander, 6),
+    make_input_pin(gpi_expander, 7)
   };
 
   while (true) {
