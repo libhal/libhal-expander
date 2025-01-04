@@ -1,8 +1,8 @@
 #pragma once
+#include <libhal-expander/tla2528.hpp>
 #include <libhal/adc.hpp>
 #include <libhal/input_pin.hpp>
 #include <libhal/output_pin.hpp>
-#include <libhal-expander/tla2528.hpp>
 
 namespace hal::expander {
 
@@ -38,7 +38,8 @@ private:
 tla2528_output_pin make_output_pin(
   tla2528& p_tla2528,
   hal::byte p_channel,
-  hal::output_pin::settings const& p_settings = {});
+  hal::output_pin::settings const& p_settings = {
+    .resistor = pin_resistor::none });
 
 class tla2528_input_pin : public hal::input_pin
 {
@@ -70,7 +71,8 @@ private:
  */
 tla2528_input_pin make_input_pin(tla2528& p_tla2528,
                                  hal::byte p_channel,
-                                 hal::input_pin::settings const& p_settings);
+                                 hal::input_pin::settings const& p_settings = {
+                                   .resistor = pin_resistor::none });
 
 class tla2528_adc : public hal::adc
 {
