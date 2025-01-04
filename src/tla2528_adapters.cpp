@@ -1,8 +1,8 @@
+#include <libhal-expander/tla2528_adapters.hpp>
 #include <libhal-util/bit.hpp>
 #include <libhal/error.hpp>
 #include <libhal/input_pin.hpp>
 #include <libhal/units.hpp>
-#include <libhal-expander/tla2528_adapters.hpp>
 
 namespace hal::expander {
 
