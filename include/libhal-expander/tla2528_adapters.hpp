@@ -33,7 +33,7 @@ private:
  * @throws hal::argument_out_of_domain - if p_channel out of range (>7)
  * @throws hal::resource_unavailable_try_again - if an adapter has already been
  * been made for the pin
- * @throws hal::no_such_device - no device responded on i2c bus
+ * @throws hal::operation_not_supported - if the settings could not be achieved.
  */
 tla2528_output_pin make_output_pin(
   tla2528& p_tla2528,
@@ -67,7 +67,7 @@ private:
  * @throws hal::argument_out_of_domain - if p_channel out of range (>7)
  * @throws hal::resource_unavailable_try_again - if an adapter has already been
  * been made for the pin
- * @throws hal::no_such_device - no device responded on i2c bus
+ * @throws hal::operation_not_supported - if the settings could not be achieved.
  */
 tla2528_input_pin make_input_pin(tla2528& p_tla2528,
                                  hal::byte p_channel,
@@ -93,7 +93,6 @@ private:
  * @throws hal::argument_out_of_domain - if p_channel out of range (>7)
  * @throws hal::resource_unavailable_try_again - if an adapter has already been
  * been made for the pin
- * @throws hal::no_such_device - no device responded on i2c bus
  */
 tla2528_adc make_adc(tla2528& p_tla2528, hal::byte p_channel);
 

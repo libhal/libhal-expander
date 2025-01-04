@@ -48,7 +48,8 @@ tla2528::tla2528(hal::i2c& p_i2c, hal::byte p_i2c_address)
   reset();
 }
 
-void tla2528::reset() {
+void tla2528::reset()
+{
   // TODO(#9): implement reset command
 }
 
