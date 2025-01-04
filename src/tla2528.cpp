@@ -48,6 +48,10 @@ tla2528::tla2528(hal::i2c& p_i2c, hal::byte p_i2c_address)
   reset();
 }
 
+void tla2528::reset() {
+  // TODO(#9): implement reset command
+}
+
 void tla2528::set_analog_channel(hal::byte p_channel)
 {
   throw_if_invalid_channel(p_channel);
