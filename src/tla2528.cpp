@@ -45,7 +45,7 @@ tla2528::tla2528(hal::i2c& p_i2c, hal::byte p_i2c_address)
   : m_i2c_bus(p_i2c)
   , m_i2c_address(p_i2c_address)
 {
-  // TODO: reset command
+  reset();
 }
 
 void tla2528::set_analog_channel(hal::byte p_channel)
@@ -166,7 +166,7 @@ bool tla2528::get_digital_in(hal::byte p_channel)
 float tla2528::get_analog_in(hal::byte p_channel)
 {
   set_analog_channel(p_channel);
-  // TODO: look into averaging & channel validation
+  // TODO(#8): look into averaging & channel validation
   std::array<hal::byte, 2> data_buffer;
   std::array<hal::byte, 1> cmd_buffer = { op_codes::single_register_read };
   hal::write_then_read(m_i2c_bus, m_i2c_address, cmd_buffer, data_buffer);
