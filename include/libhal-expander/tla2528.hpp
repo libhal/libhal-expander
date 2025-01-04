@@ -131,7 +131,7 @@ private:
   void set_analog_channel(hal::byte p_channel);
   void throw_if_invalid_channel(hal::byte p_channel);
   void throw_if_channel_occupied(hal::byte p_channel);
-  void reset();
+  void reset();// TODO(#9): implement reset command
 
   hal::i2c& m_i2c_bus;
   hal::byte m_i2c_address;
