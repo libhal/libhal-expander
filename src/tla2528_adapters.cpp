@@ -19,10 +19,7 @@ tla2528_output_pin::tla2528_output_pin(
   : m_tla2528(&p_tla2528)
   , m_channel(p_channel)
 {
-  if (hal::bit_extract(hal::bit_mask::from(m_channel),
-                       m_tla2528->m_object_created)) {
-    throw hal::resource_unavailable_try_again(this);
-  }
+  m_tla2528->throw_if_channel_occupied(m_channel);
   driver_configure(p_settings);
   hal::bit_modify(m_tla2528->m_object_created)
     .set(hal::bit_mask::from(m_channel));
@@ -67,10 +64,7 @@ tla2528_input_pin::tla2528_input_pin(tla2528& p_tla2528,
   : m_tla2528(&p_tla2528)
   , m_channel(p_channel)
 {
-  if (hal::bit_extract(hal::bit_mask::from(m_channel),
-                       m_tla2528->m_object_created)) {
-    throw hal::resource_unavailable_try_again(this);
-  }
+  m_tla2528->throw_if_channel_occupied(m_channel);
   m_tla2528->set_pin_mode(tla2528::pin_mode::digital_input, m_channel);
   driver_configure(p_settings);
   hal::bit_modify(m_tla2528->m_object_created)
@@ -106,10 +100,7 @@ tla2528_adc::tla2528_adc(tla2528& p_tla2528, hal::byte p_channel)
   : m_tla2528(&p_tla2528)
   , m_channel(p_channel)
 {
-  if (hal::bit_extract(hal::bit_mask::from(m_channel),
-                       m_tla2528->m_object_created)) {
-    throw hal::resource_unavailable_try_again(this);
-  }
+  m_tla2528->throw_if_channel_occupied(m_channel);
   m_tla2528->set_pin_mode(tla2528::pin_mode::analog_input, m_channel);
   hal::bit_modify(m_tla2528->m_object_created)
     .set(hal::bit_mask::from(m_channel));

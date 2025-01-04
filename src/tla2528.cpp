@@ -1,9 +1,9 @@
 #include <bitset>
+#include <libhal-expander/tla2528.hpp>
 #include <libhal-util/bit.hpp>
 #include <libhal-util/i2c.hpp>
 #include <libhal/error.hpp>
 #include <libhal/units.hpp>
-#include <libhal-expander/tla2528.hpp>
 
 namespace {
 enum op_codes : hal::byte
@@ -76,10 +76,9 @@ void tla2528::set_pin_mode(pin_mode p_mode, hal::byte p_channel)
   hal::bit_mask channel_mask = hal::bit_mask::from(p_channel);
   if (p_mode == pin_mode::digital_output_push_pull ||
       p_mode == pin_mode::digital_output_open_drain) {
-    if (hal::bit_extract(channel_mask, m_object_created) &&
-        !(hal::bit_extract(channel_mask, pin_cfg_reg) ||
+    if (!(hal::bit_extract(channel_mask, pin_cfg_reg) ||
           hal::bit_extract(channel_mask, gpio_cfg_reg))) {
-      throw hal::resource_unavailable_try_again(this);
+      throw_if_channel_occupied(p_channel);
     }
     hal::bit_modify(pin_cfg_reg).set(channel_mask);
     hal::bit_modify(gpio_cfg_reg).set(channel_mask);
@@ -88,14 +87,16 @@ void tla2528::set_pin_mode(pin_mode p_mode, hal::byte p_channel)
     } else {
       hal::bit_modify(gpo_drive_cfg_reg).clear(channel_mask);
     }
-  } else if (hal::bit_extract(channel_mask, m_object_created)) {
-    throw hal::resource_unavailable_try_again(this);
-  } else if (p_mode == pin_mode::analog_input) {
-    hal::bit_modify(pin_cfg_reg).clear(channel_mask);
-  } else {  // must be pin_mode::digitalInput
-    hal::bit_modify(pin_cfg_reg).set(channel_mask);
-    hal::bit_modify(gpio_cfg_reg).clear(channel_mask);
+  } else {
+    throw_if_channel_occupied(p_channel);
+    if (p_mode == pin_mode::analog_input) {
+      hal::bit_modify(pin_cfg_reg).clear(channel_mask);
+    } else {  // must be pin_mode::digitalInput
+      hal::bit_modify(pin_cfg_reg).set(channel_mask);
+      hal::bit_modify(gpio_cfg_reg).clear(channel_mask);
+    }
   }
+
   std::array<hal::byte, 7> write_cmd_buffer = {
     op_codes::continuous_register_write,
     register_addresses::pin_cfg,
@@ -180,6 +181,13 @@ void tla2528::throw_if_invalid_channel(hal::byte p_channel)
 {
   if (p_channel > 7) {
     throw hal::argument_out_of_domain(this);
+  }
+}
+
+void tla2528::throw_if_channel_occupied(hal::byte p_channel)
+{
+  if (hal::bit_extract(hal::bit_mask::from(p_channel), m_object_created)) {
+    throw hal::resource_unavailable_try_again(this);
   }
 }
 
