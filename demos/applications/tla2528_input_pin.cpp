@@ -21,14 +21,10 @@ void application(resource_list& p_map)
   auto& steady_clock = *p_map.clock.value();
   auto gpi_expander = hal::expander::tla2528(i2c);
   std::array<hal::expander::tla2528_input_pin, 8> gpis{
-    make_input_pin(gpi_expander, 0),
-    make_input_pin(gpi_expander, 1),
-    make_input_pin(gpi_expander, 2),
-    make_input_pin(gpi_expander, 3),
-    make_input_pin(gpi_expander, 4),
-    make_input_pin(gpi_expander, 5),
-    make_input_pin(gpi_expander, 6),
-    make_input_pin(gpi_expander, 7)
+    make_input_pin(gpi_expander, 0), make_input_pin(gpi_expander, 1),
+    make_input_pin(gpi_expander, 2), make_input_pin(gpi_expander, 3),
+    make_input_pin(gpi_expander, 4), make_input_pin(gpi_expander, 5),
+    make_input_pin(gpi_expander, 6), make_input_pin(gpi_expander, 7)
   };
 
   while (true) {
