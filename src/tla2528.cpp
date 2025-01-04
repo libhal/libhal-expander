@@ -69,7 +69,7 @@ void tla2528::set_pin_mode(pin_mode p_mode, hal::byte p_channel)
 {
   throw_if_invalid_channel(p_channel);
   std::array<hal::byte, 5> data_buffer;
-  std::array<hal::byte, 2> read_cmd_buffer = {
+  constexpr std::array<hal::byte, 2> read_cmd_buffer = {
     op_codes::continuous_register_read, register_addresses::pin_cfg
   };
   hal::write_then_read(m_i2c_bus, m_i2c_address, read_cmd_buffer, data_buffer);
@@ -81,8 +81,9 @@ void tla2528::set_pin_mode(pin_mode p_mode, hal::byte p_channel)
   hal::bit_mask channel_mask = hal::bit_mask::from(p_channel);
   if (p_mode == pin_mode::digital_output_push_pull ||
       p_mode == pin_mode::digital_output_open_drain) {
-    if (!(hal::bit_extract(channel_mask, pin_cfg_reg) ||
-          hal::bit_extract(channel_mask, gpio_cfg_reg))) {
+    bool is_analog = hal::bit_extract(channel_mask, pin_cfg_reg);
+    bool is_input = hal::bit_extract(channel_mask, gpio_cfg_reg);
+    if (!(is_analog || is_input)) {
       throw_if_channel_occupied(p_channel);
     }
     hal::bit_modify(pin_cfg_reg).set(channel_mask);
@@ -143,7 +144,7 @@ bool tla2528::get_digital_out(hal::byte p_channel)
 hal::byte tla2528::get_digital_bus_out()
 {
   std::array<hal::byte, 1> data_buffer;
-  std::array<hal::byte, 2> cmd_buffer = {
+  constexpr std::array<hal::byte, 2> cmd_buffer = {
     op_codes::single_register_read,
     register_addresses::gpo_value,
   };
@@ -154,7 +155,7 @@ hal::byte tla2528::get_digital_bus_out()
 hal::byte tla2528::get_digital_bus_in()
 {
   std::array<hal::byte, 1> data_buffer;
-  std::array<hal::byte, 3> cmd_buffer = {
+  constexpr std::array<hal::byte, 3> cmd_buffer = {
     op_codes::single_register_read,
     register_addresses::gpi_value,
   };
