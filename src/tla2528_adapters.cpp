@@ -27,7 +27,7 @@ tla2528_output_pin::tla2528_output_pin(
 tla2528_output_pin::~tla2528_output_pin()
 {
   hal::bit_modify(m_tla2528->m_object_created)
-    .set(hal::bit_mask::from(m_channel));
+    .clear(hal::bit_mask::from(m_channel));
 }
 void tla2528_output_pin::driver_configure(
   hal::output_pin::settings const& p_settings)
@@ -73,7 +73,7 @@ tla2528_input_pin::tla2528_input_pin(tla2528& p_tla2528,
 tla2528_input_pin::~tla2528_input_pin()
 {
   hal::bit_modify(m_tla2528->m_object_created)
-    .set(hal::bit_mask::from(m_channel));
+    .clear(hal::bit_mask::from(m_channel));
 }
 bool tla2528_input_pin::driver_level()
 {
@@ -94,7 +94,7 @@ tla2528_adc make_adc(tla2528& p_tla2528, hal::byte p_channel)
 tla2528_adc::~tla2528_adc()
 {
   hal::bit_modify(m_tla2528->m_object_created)
-    .set(hal::bit_mask::from(m_channel));
+    .clear(hal::bit_mask::from(m_channel));
 }
 tla2528_adc::tla2528_adc(tla2528& p_tla2528, hal::byte p_channel)
   : m_tla2528(&p_tla2528)
