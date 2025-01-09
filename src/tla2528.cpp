@@ -117,6 +117,9 @@ void tla2528::set_pin_mode(pin_mode p_mode, hal::byte p_channel)
 
 void tla2528::set_digital_bus_out(hal::byte p_values)
 {
+  // The device will write to a register that caches the desired output state
+  // weather in output mode or not. When a pin is in a digital output mode it
+  // will reference the desired state cache.
   m_gpo_value = p_values;
   std::array<hal::byte, 3> cmd_buffer = { op_codes::single_register_write,
                                           register_addresses::gpo_value,

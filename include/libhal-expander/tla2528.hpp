@@ -53,10 +53,6 @@ public:
   /**
    * @brief set digital output level pin
    *
-   * The device will write to a register that caches the desired output state.
-   * When a pin is in a digital output mode it will reference the desired state
-   * cache. If the pin is not set to digital output it will just be stored.
-   *
    * @param p_channel pin to set output
    * @param p_high the output level of the pin, true is high, false is low.
    * @throws hal::argument_out_of_domain - if p_channel out of range (>7)
@@ -64,10 +60,6 @@ public:
   void set_digital_out(hal::byte p_channel, bool p_high);
   /**
    * @brief set digital output levels on all pins
-   *
-   * The device will write to a register that caches the desired output state.
-   * When a pin is in a digital output mode it will reference the desired state
-   * cache. If the pin is not set to digital output it will just be stored.
    *
    * @param p_values The byte is used as a bit field of bool values to set the
    * pin outputs. i.e the 0th bit in the byte will set the 0 pin. If a bit is
