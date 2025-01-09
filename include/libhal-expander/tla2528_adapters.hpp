@@ -28,6 +28,7 @@ private:
 /**
  * @brief create a hal::output_pin driver using the tla2528 driver
  *
+ * @param p_tla2528 tla2528 controling the output pin
  * @param p_channel pin acting as an output pin
  * @param p_settings output pin settings, default is push-pull and no resistor
  * @throws hal::argument_out_of_domain - if p_channel out of range (>7)
@@ -62,6 +63,7 @@ private:
 /**
  * @brief create a hal::input_pin driver using the tla2528 driver
  *
+ * @param p_tla2528 tla2528 controling the input pin
  * @param p_channel pin acting as an input pin
  * @param p_settings input pin settings, default is no resistor
  * @throws hal::argument_out_of_domain - if p_channel out of range (>7)
@@ -89,6 +91,7 @@ private:
 /**
  * @brief create a hal::adc driver using the tla2528 driver
  *
+ * @param p_tla2528 tla2528 controling the adc
  * @param p_channel pin acting as an input pin
  * @throws hal::argument_out_of_domain - if p_channel out of range (>7)
  * @throws hal::resource_unavailable_try_again - if an adapter has already been

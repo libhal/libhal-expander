@@ -10,7 +10,7 @@ tla2528_output_pin make_output_pin(tla2528& p_tla2528,
                                    hal::byte const p_channel,
                                    hal::output_pin::settings const& p_settings)
 {
-  return tla2528_output_pin(p_tla2528, p_channel, p_settings);
+  return { p_tla2528, p_channel, p_settings };
 }
 tla2528_output_pin::tla2528_output_pin(
   tla2528& p_tla2528,
@@ -20,7 +20,7 @@ tla2528_output_pin::tla2528_output_pin(
   , m_channel(p_channel)
 {
   m_tla2528->throw_if_channel_occupied(m_channel);
-  driver_configure(p_settings);
+  tla2528_output_pin::driver_configure(p_settings);
   hal::bit_modify(m_tla2528->m_object_created)
     .set(hal::bit_mask::from(m_channel));
 }
@@ -56,7 +56,7 @@ tla2528_input_pin make_input_pin(tla2528& p_tla2528,
                                  hal::byte p_channel,
                                  hal::input_pin::settings const& p_settings)
 {
-  return tla2528_input_pin(p_tla2528, p_channel, p_settings);
+  return { p_tla2528, p_channel, p_settings };
 }
 tla2528_input_pin::tla2528_input_pin(tla2528& p_tla2528,
                                      hal::byte p_channel,
@@ -66,7 +66,7 @@ tla2528_input_pin::tla2528_input_pin(tla2528& p_tla2528,
 {
   m_tla2528->throw_if_channel_occupied(m_channel);
   m_tla2528->set_pin_mode(tla2528::pin_mode::digital_input, m_channel);
-  driver_configure(p_settings);
+  tla2528_input_pin::driver_configure(p_settings);
   hal::bit_modify(m_tla2528->m_object_created)
     .set(hal::bit_mask::from(m_channel));
 }
@@ -89,7 +89,7 @@ void tla2528_input_pin::driver_configure(
 
 tla2528_adc make_adc(tla2528& p_tla2528, hal::byte p_channel)
 {
-  return tla2528_adc(p_tla2528, p_channel);
+  return { p_tla2528, p_channel };
 }
 tla2528_adc::~tla2528_adc()
 {

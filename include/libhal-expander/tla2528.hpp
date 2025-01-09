@@ -70,9 +70,9 @@ public:
    * @brief read digital output state register of an output pin
    *
    * @param p_channel pin you would like to get the ouput value
-   * @return true if the pin's output value register is high. If a pin is not set to
-   * output pin the returned state will be used once it changes to an output
-   * pin.
+   * @return true if the pin's output value register is high. If a pin is not
+   * set to output pin the returned state will be used once it changes to an
+   * output pin.
    * @throws hal::argument_out_of_domain - if p_channel out of range (>7)
    */
   bool get_digital_out(hal::byte p_channel);
@@ -90,9 +90,9 @@ public:
   /**
    * @brief read the digital level of a pins
    *
-   * @return true if the pin's digital read value is high. If a pin is not set to
-   * digital input or output the returned value may not correlate with the true
-   * value.
+   * @return true if the pin's digital read value is high. If a pin is not set
+   * to digital input or output the returned value may not correlate with the
+   * true value.
    * @throws hal::argument_out_of_domain - if p_channel out of range. (>7)
    *
    */
