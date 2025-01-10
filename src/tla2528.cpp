@@ -182,7 +182,7 @@ float tla2528::get_analog_in(hal::byte p_channel)
   // Take 12 bit number stored in first 12 bits of 2 bytes and converting to 16
   // bit num by shifting 4 bit right (See Figure 25 on datasheet)
   uint16_t data = data_buffer[0] << 4 | data_buffer[1] >> 4;
-  return data / (float)4095.0;
+  return (float)data / (float)4095.0;
 }
 
 void tla2528::throw_if_invalid_channel(hal::byte p_channel)
