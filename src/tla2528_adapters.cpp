@@ -36,11 +36,10 @@ void tla2528_output_pin::driver_configure(
     throw hal::operation_not_supported(this);
   }
   if (p_settings.open_drain) {
-    m_tla2528->set_pin_mode(tla2528::pin_mode::digital_output_open_drain,
+    m_tla2528->set_pin_mode(tla2528::pin_mode::output_pin_open_drain,
                             m_channel);
   } else {
-    m_tla2528->set_pin_mode(tla2528::pin_mode::digital_output_push_pull,
-                            m_channel);
+    m_tla2528->set_pin_mode(tla2528::pin_mode::output_pin_push_pull, m_channel);
   }
 }
 void tla2528_output_pin::driver_level(bool p_high)
@@ -65,7 +64,7 @@ tla2528_input_pin::tla2528_input_pin(tla2528& p_tla2528,
   , m_channel(p_channel)
 {
   m_tla2528->throw_if_channel_occupied(m_channel);
-  m_tla2528->set_pin_mode(tla2528::pin_mode::digital_input, m_channel);
+  m_tla2528->set_pin_mode(tla2528::pin_mode::input_pin, m_channel);
   tla2528_input_pin::driver_configure(p_settings);
   hal::bit_modify(m_tla2528->m_object_created)
     .set(hal::bit_mask::from(m_channel));
@@ -101,7 +100,7 @@ tla2528_adc::tla2528_adc(tla2528& p_tla2528, hal::byte p_channel)
   , m_channel(p_channel)
 {
   m_tla2528->throw_if_channel_occupied(m_channel);
-  m_tla2528->set_pin_mode(tla2528::pin_mode::analog_input, m_channel);
+  m_tla2528->set_pin_mode(tla2528::pin_mode::adc, m_channel);
   hal::bit_modify(m_tla2528->m_object_created)
     .set(hal::bit_mask::from(m_channel));
 }

@@ -14,7 +14,7 @@ class tla2528_output_pin;
  * @brief tla2528 is a gpio expander & adc mux driver
  *
  * tla2528 has 8 pins which can be independently operated as an adc,
- * digital input, and digital out over i2c. The i2c address is configured by
+ * input pin, and out pin over i2c. The i2c address is configured by
  * resistors connected to the chip There are no options for internal pull up or
  * pull down resistors. The output pins have the option of push-pull or
  * open-drain. When in adc mode there is an option (UNIMPLEMENTED) to increase
@@ -25,10 +25,10 @@ class tla2528
 public:
   enum class pin_mode : hal::byte
   {
-    analog_input,
-    digital_input,
-    digital_output_open_drain,
-    digital_output_push_pull
+    adc,
+    input_pin,
+    output_pin_open_drain,
+    output_pin_push_pull
   };
 
   /**
@@ -51,7 +51,7 @@ public:
   void set_pin_mode(pin_mode p_mode, hal::byte p_channel);
 
   /**
-   * @brief set digital output level pin
+   * @brief set digital output level of a pin
    *
    * @param p_channel pin to set output
    * @param p_high the output level of the pin, true is high, false is low.
@@ -88,7 +88,7 @@ public:
   hal::byte get_digital_bus_out();
 
   /**
-   * @brief read the digital level of a pins
+   * @brief read the digital level of a pin
    *
    * @return true if the pin's digital read value is high. If a pin is not set
    * to digital input or output the returned value may not correlate with the
@@ -103,18 +103,18 @@ public:
    * @return The byte is used as a bit field of bool values to give the pins'
    * digital read values. i.e the 0th bit in the byte will be the 0 pin's stored
    * value. If a bit is 1 it is high. If the bit is 0 it is low. If the pin is
-   * not set to digital input or output the returned value may not correlate
+   * not set to input pin or output pin the returned value may not correlate
    * with the true value.
    *
    */
   hal::byte get_digital_bus_in();
 
   /**
-   * @brief read the analog input of a pin.
+   * @brief read the adc reading of a pin
    *
    * @param p_channel if out of range (>7) an exception will be thrown
    * @return adc reading as a float between 0 and 1 inclusive. If the pin is not
-   * set to analog input the returned value may not correlate with the true
+   * set to adc the returned value may not correlate with the true
    * value.
    * @throws hal::argument_out_of_domain - if p_channel out of range. (>7)
    */

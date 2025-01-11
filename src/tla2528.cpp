@@ -78,8 +78,8 @@ void tla2528::set_pin_mode(pin_mode p_mode, hal::byte p_channel)
   hal::byte gpo_drive_cfg_reg = data_buffer[4];
 
   hal::bit_mask channel_mask = hal::bit_mask::from(p_channel);
-  if (p_mode == pin_mode::digital_output_push_pull ||
-      p_mode == pin_mode::digital_output_open_drain) {
+  if (p_mode == pin_mode::output_pin_push_pull ||
+      p_mode == pin_mode::output_pin_open_drain) {
     bool is_analog = hal::bit_extract(channel_mask, pin_cfg_reg);
     bool is_input = hal::bit_extract(channel_mask, gpio_cfg_reg);
     if (!(is_analog || is_input)) {
@@ -87,14 +87,14 @@ void tla2528::set_pin_mode(pin_mode p_mode, hal::byte p_channel)
     }
     hal::bit_modify(pin_cfg_reg).set(channel_mask);
     hal::bit_modify(gpio_cfg_reg).set(channel_mask);
-    if (p_mode == pin_mode::digital_output_push_pull) {
+    if (p_mode == pin_mode::output_pin_push_pull) {
       hal::bit_modify(gpo_drive_cfg_reg).set(channel_mask);
     } else {
       hal::bit_modify(gpo_drive_cfg_reg).clear(channel_mask);
     }
   } else {
     throw_if_channel_occupied(p_channel);
-    if (p_mode == pin_mode::analog_input) {
+    if (p_mode == pin_mode::adc) {
       hal::bit_modify(pin_cfg_reg).clear(channel_mask);
     } else {  // must be pin_mode::digitalInput
       hal::bit_modify(pin_cfg_reg).set(channel_mask);

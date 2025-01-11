@@ -92,7 +92,7 @@ private:
  * @brief create a hal::adc driver using the tla2528 driver
  *
  * @param p_tla2528 tla2528 controling the adc
- * @param p_channel pin acting as an input pin
+ * @param p_channel pin acting as an adc
  * @throws hal::argument_out_of_domain - if p_channel out of range (>7)
  * @throws hal::resource_unavailable_try_again - if an adapter has already been
  * been made for the pin
