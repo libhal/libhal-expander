@@ -57,7 +57,7 @@ public:
    * @param p_high the output level of the pin, true is high, false is low.
    * @throws hal::argument_out_of_domain - if p_channel out of range (>7)
    */
-  void set_digital_out(hal::byte p_channel, bool p_high);
+  void set_output_pin(hal::byte p_channel, bool p_high);
   /**
    * @brief set digital output levels on all pins
    *
@@ -65,7 +65,7 @@ public:
    * pin outputs. i.e the 0th bit in the byte will set the 0 pin. If a bit is
    * 1 it is high. If the bit is 0 it is low.
    */
-  void set_digital_bus_out(hal::byte p_values);
+  void set_output_bus(hal::byte p_values);
   /**
    * @brief read digital output state register of an output pin
    *
@@ -75,7 +75,7 @@ public:
    * output pin.
    * @throws hal::argument_out_of_domain - if p_channel out of range (>7)
    */
-  bool get_digital_out(hal::byte p_channel);
+  bool get_output_pin_state(hal::byte p_channel);
   /**
    * @brief read digital output state register of all output pins
    *
@@ -85,7 +85,7 @@ public:
    * output pin the returned state will be used once it changes to an output
    * pin.
    */
-  hal::byte get_digital_bus_out();
+  hal::byte get_output_bus_state();
 
   /**
    * @brief read the digital level of a pin
@@ -96,7 +96,7 @@ public:
    * @throws hal::argument_out_of_domain - if p_channel out of range. (>7)
    *
    */
-  bool get_digital_in(hal::byte p_channel);
+  bool get_input_pin(hal::byte p_channel);
   /**
    * @brief read the digital levels of all pins
    *
@@ -107,7 +107,7 @@ public:
    * with the true value.
    *
    */
-  hal::byte get_digital_bus_in();
+  hal::byte get_input_bus();
 
   /**
    * @brief read the adc reading of a pin
@@ -118,7 +118,7 @@ public:
    * value.
    * @throws hal::argument_out_of_domain - if p_channel out of range. (>7)
    */
-  float get_analog_in(hal::byte p_channel);
+  float get_adc_reading(hal::byte p_channel);
 
   friend tla2528_adc;
   friend tla2528_input_pin;

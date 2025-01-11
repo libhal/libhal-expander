@@ -44,11 +44,11 @@ void tla2528_output_pin::driver_configure(
 }
 void tla2528_output_pin::driver_level(bool p_high)
 {
-  m_tla2528->set_digital_out(m_channel, p_high);
+  m_tla2528->set_output_pin(m_channel, p_high);
 }
 bool tla2528_output_pin::driver_level()
 {
-  return m_tla2528->get_digital_in(m_channel);
+  return m_tla2528->get_input_pin(m_channel);
 }
 
 tla2528_input_pin make_input_pin(tla2528& p_tla2528,
@@ -76,7 +76,7 @@ tla2528_input_pin::~tla2528_input_pin()
 }
 bool tla2528_input_pin::driver_level()
 {
-  return m_tla2528->get_digital_in(m_channel);
+  return m_tla2528->get_input_pin(m_channel);
 }
 void tla2528_input_pin::driver_configure(
   hal::input_pin::settings const& p_settings)
@@ -106,6 +106,6 @@ tla2528_adc::tla2528_adc(tla2528& p_tla2528, hal::byte p_channel)
 }
 float tla2528_adc::driver_read()
 {
-  return m_tla2528->get_analog_in(m_channel);
+  return m_tla2528->get_adc_reading(m_channel);
 }
 }  // namespace hal::expander

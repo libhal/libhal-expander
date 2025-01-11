@@ -114,7 +114,7 @@ void tla2528::set_pin_mode(pin_mode p_mode, hal::byte p_channel)
   hal::write(m_i2c_bus, m_i2c_address, write_cmd_buffer);
 }
 
-void tla2528::set_digital_bus_out(hal::byte p_values)
+void tla2528::set_output_bus(hal::byte p_values)
 {
   // The device will write to a register that caches the desired output state
   // weather in output mode or not. When a pin is in a digital output mode it
@@ -126,7 +126,7 @@ void tla2528::set_digital_bus_out(hal::byte p_values)
   hal::write(m_i2c_bus, m_i2c_address, cmd_buffer);
 }
 
-void tla2528::set_digital_out(hal::byte p_channel, bool p_high)
+void tla2528::set_output_pin(hal::byte p_channel, bool p_high)
 {
   throw_if_invalid_channel(p_channel);
   if (p_high) {
@@ -134,16 +134,16 @@ void tla2528::set_digital_out(hal::byte p_channel, bool p_high)
   } else {
     hal::bit_modify(m_gpo_value).clear(hal::bit_mask::from(p_channel));
   }
-  set_digital_bus_out(m_gpo_value);
+  set_output_bus(m_gpo_value);
 }
 
-bool tla2528::get_digital_out(hal::byte p_channel)
+bool tla2528::get_output_pin_state(hal::byte p_channel)
 {
   throw_if_invalid_channel(p_channel);
   return hal::bit_extract(hal::bit_mask::from(p_channel),
-                          get_digital_bus_out());
+                          get_output_bus_state());
 }
-hal::byte tla2528::get_digital_bus_out()
+hal::byte tla2528::get_output_bus_state()
 {
   std::array<hal::byte, 1> data_buffer;
   constexpr std::array<hal::byte, 2> cmd_buffer = {
@@ -154,7 +154,7 @@ hal::byte tla2528::get_digital_bus_out()
   return data_buffer[0];
 }
 
-hal::byte tla2528::get_digital_bus_in()
+hal::byte tla2528::get_input_bus()
 {
   std::array<hal::byte, 1> data_buffer;
   constexpr std::array<hal::byte, 3> cmd_buffer = {
@@ -165,13 +165,13 @@ hal::byte tla2528::get_digital_bus_in()
   return data_buffer[0];
 }
 
-bool tla2528::get_digital_in(hal::byte p_channel)
+bool tla2528::get_input_pin(hal::byte p_channel)
 {
   throw_if_invalid_channel(p_channel);
-  return hal::bit_extract(hal::bit_mask::from(p_channel), get_digital_bus_in());
+  return hal::bit_extract(hal::bit_mask::from(p_channel), get_input_bus());
 }
 
-float tla2528::get_analog_in(hal::byte p_channel)
+float tla2528::get_adc_reading(hal::byte p_channel)
 {
   set_analog_channel(p_channel);
   // TODO(#8): look into averaging & channel validation
