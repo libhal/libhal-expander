@@ -43,7 +43,8 @@ conan build demos -pr stm32f103c8 -pr arm-gcc-12.3
 
 ## 📦 Building & installing the Library Package
 
-To build the package, start at the root of the repo and execute the following command:
+To build and install the package, start at the root of the repo and execute the 
+following command:
 
 ```bash
 conan create . -pr lpc4078 -pr arm-gcc-12.3 --version=latest
