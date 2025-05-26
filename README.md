@@ -9,9 +9,7 @@ libhal compatible device drivers IO expander type devices.
 
 ## 📚 Software APIs & Usage
 
-To learn about the available drivers and APIs see the
-[API Reference](https://libhal.github.io/latest/api/)
-documentation page or look at the headers in the
+To learn about the available drivers and APIs see the the headers in the
 [`include/libhal-expander`](https://github.com/libhal/libhal-expander/tree/main/include/libhal-expander)
 directory.
 
@@ -43,14 +41,14 @@ conan build demos -pr stm32f103c8 -pr arm-gcc-12.3
 
 ## 📦 Building & installing the Library Package
 
-To build and install the package, start at the root of the repo and execute the 
+To build and install the package, start at the root of the repo and execute the
 following command:
 
 ```bash
 conan create . -pr lpc4078 -pr arm-gcc-12.3 --version=latest
 ```
 
-To compile the package for the `stm32f103c8` or `lpc4074`, simply replace the 
+To compile the package for the `stm32f103c8` or `lpc4074`, simply replace the
 `lpc4078` profile with the appropriate profile name. For example:
 
 ```bash
@@ -88,7 +86,6 @@ Replace `app.elf` with the name of your executable.
 
 The available headers for your app or library will exist in the
 [`include/libhal-expander/`](./include/libhal-expander) directory.
-
 
 ## 🌟 Package Semantic Versioning Explained
 
