@@ -26,15 +26,21 @@ class libhal_expander_conan(ConanFile):
     topics = ("expander", "libhal", "driver")
     settings = "compiler", "build_type", "os", "arch"
 
-    python_requires = "libhal-bootstrap/[>=4.3.0 <5]"
+    python_requires = "libhal-bootstrap/[>=4.4.0 <5]"
     python_requires_extend = "libhal-bootstrap.library"
 
     def requirements(self):
         # Adds libhal and libhal-util as transitive headers, meaning library
         # consumers get the libhal and libhal-util headers downstream.
         bootstrap = self.python_requires["libhal-bootstrap"]
-        bootstrap.module.add_library_requirements(self)
+        bootstrap.module.add_library_requirements(
+            self,
+            override_libhal_version="4.12.1",
+            override_libhal_util_version="5.5.0")
 
     def package_info(self):
         self.cpp_info.libs = ["libhal-expander"]
         self.cpp_info.set_property("cmake_target_name", "libhal::expander")
+
+    def package_id(self):
+        self.info.python_requires.major_mode()
