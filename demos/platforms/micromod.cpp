@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <libhal-exceptions/control.hpp>
 #include <libhal-micromod/micromod.hpp>
 
 #include <resource_list.hpp>

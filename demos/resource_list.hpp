@@ -19,6 +19,7 @@
 #include <libhal/functional.hpp>
 #include <libhal/i2c.hpp>
 #include <libhal/output_pin.hpp>
+#include <libhal/pointers.hpp>
 #include <libhal/serial.hpp>
 #include <libhal/steady_clock.hpp>
 
@@ -29,10 +30,14 @@ struct resource_list
   std::optional<hal::steady_clock*> clock{};
   std::optional<hal::output_pin*> status_led{};
   std::optional<hal::i2c*> i2c{};
-  std::optional<hal::serial*> usb_serial{};
   // Add more driver interfaces here ...
 };
 
 // Application function is implemented by one of the .cpp files.
 resource_list initialize_platform();
 void application(resource_list& p_map);
+[[noreturn]] void terminate_handler() noexcept;
+
+hal::v5::strong_ptr<hal::v5::serial> usb_serial();
+hal::v5::strong_ptr<hal::v5::serial> serial_console(hal::usize p_buffer_size);
+hal::v5::strong_ptr<hal::v5::steady_clock> steady_clock();

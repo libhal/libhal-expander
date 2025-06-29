@@ -20,6 +20,7 @@
 #include <libhal-arm-mcu/lpc40/uart.hpp>
 #include <libhal-arm-mcu/startup.hpp>
 #include <libhal-arm-mcu/system_control.hpp>
+#include <libhal-exceptions/control.hpp>
 #include <libhal-util/as_bytes.hpp>
 
 #include <resource_list.hpp>
@@ -27,6 +28,8 @@
 resource_list initialize_platform()
 {
   using namespace hal::literals;
+
+  hal::set_terminate(terminate_handler);
 
   // Set the MCU to the maximum clock speed
   hal::lpc40::maximum(10.0_MHz);

@@ -12,7 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <libhal-exceptions/control.hpp>
+#include <exception>
+
 #include <libhal-util/serial.hpp>
 #include <libhal-util/steady_clock.hpp>
 #include <libhal/error.hpp>
@@ -58,8 +59,6 @@ int main()
       continue;
     }
   }
-
-  hal::set_terminate(terminate_handler);
 
   try {
     application(resources);
