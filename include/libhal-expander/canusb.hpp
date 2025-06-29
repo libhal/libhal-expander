@@ -15,8 +15,6 @@
 #pragma once
 
 #include <libhal/can.hpp>
-#include <optional>
-
 #include <libhal/circular_buffer.hpp>
 #include <libhal/pointers.hpp>
 #include <libhal/serial.hpp>
@@ -26,7 +24,7 @@ namespace hal::expander {
 /**
  *
  */
-class canusb
+class canusb : hal::v5::enable_strong_from_this<canusb>
 {
 public:
   canusb(hal::v5::strong_ptr<hal::v5::serial>& p_serial)
@@ -36,15 +34,20 @@ public:
 
   class can_bus_manager : public hal::v5::can_bus_manager
   {
+  public:
     can_bus_manager(hal::v5::strong_ptr<canusb>& p_manager)
       : m_manager(std::move(p_manager))
     {
     }
+
+  private:
+    friend class canusb;
     void driver_baud_rate(hal::u32 p_hertz) override;
     void driver_filter_mode(accept p_accept) override;
     void driver_on_bus_off(optional_bus_off_handler& p_callback) override;
     void driver_bus_on() override;
     hal::v5::strong_ptr<canusb> m_manager;
+    optional_bus_off_handler m_bus_off_handler;
   };
 
   hal::v5::strong_ptr<can_bus_manager> acquire_can_bus_manager(
@@ -52,6 +55,7 @@ public:
 
   class can_transceiver : public hal::v5::can_transceiver
   {
+  public:
     can_transceiver(hal::v5::strong_ptr<canusb>& p_manager,
                     std::pmr::polymorphic_allocator<> p_allocator,
                     hal::usize p_capacity)
@@ -59,19 +63,32 @@ public:
       , m_circular_buffer(p_allocator, p_capacity)
     {
     }
+
+  private:
+    friend class canusb;
+    void process_incoming_serial_data();
+
     u32 driver_baud_rate() override;
     void driver_send(hal::v5::can_message const& p_message) override;
     std::span<hal::v5::can_message const> driver_receive_buffer() override;
-    std::size_t driver_receive_cursor() override;
+    hal::usize driver_receive_cursor() override;
+
     hal::v5::strong_ptr<canusb> m_manager;
     hal::v5::circular_buffer<hal::v5::can_message> m_circular_buffer;
+    hal::usize m_last_serial_cursor = 0;
+    std::array<hal::byte, 32> m_parse_buffer{};
+    hal::usize m_parse_buffer_pos = 0;
   };
 
-  hal::v5::strong_ptr<can_bus_manager> acquire_can_transceiver(
+  hal::v5::strong_ptr<can_transceiver> acquire_can_transceiver(
     std::pmr::polymorphic_allocator<> p_allocator,
     hal::usize p_buffer_size);
 
 private:
   hal::v5::strong_ptr<hal::v5::serial> m_serial;
+  bool m_bus_manager_acquired = false;
+  bool m_transceiver_acquired = false;
+  bool m_is_open = false;
+  hal::u32 m_current_baud_rate = 125000;  // Default to 125kHz
 };
 }  // namespace hal::expander

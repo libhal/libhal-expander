@@ -12,27 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
+#include <cstdlib>
 
-#include <optional>
-
-#include <libhal/functional.hpp>
-#include <libhal/i2c.hpp>
-#include <libhal/output_pin.hpp>
 #include <libhal/serial.hpp>
-#include <libhal/steady_clock.hpp>
 
-struct resource_list
+#include <resource_list.hpp>
+
+resource_list initialize_platform()
 {
-  hal::callback<void()> reset{};
-  std::optional<hal::serial*> console{};
-  std::optional<hal::steady_clock*> clock{};
-  std::optional<hal::output_pin*> status_led{};
-  std::optional<hal::i2c*> i2c{};
-  std::optional<hal::serial*> usb_serial{};
-  // Add more driver interfaces here ...
-};
+  using namespace hal::literals;
 
-// Application function is implemented by one of the .cpp files.
-resource_list initialize_platform();
-void application(resource_list& p_map);
+  return {
+    .reset = +[]() { exit(-1); },
+    .usb_serial = std::nullopt,
+  };
+}

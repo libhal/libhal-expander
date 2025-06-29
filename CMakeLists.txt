@@ -19,6 +19,7 @@ libhal_test_and_make_library(
   LIBRARY_NAME libhal-expander
 
   SOURCES
+  src/canusb.cpp
   src/pca9685.cpp
   src/tla2528.cpp
   src/tla2528_adapters.cpp
