@@ -22,6 +22,7 @@ libhal_build_demos(
   tla2528_adc
   tla2528_input_pin
   tla2528_output_pin
+  canusb
 
   INCLUDES
   .
