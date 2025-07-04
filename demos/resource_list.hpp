@@ -14,30 +14,26 @@
 
 #pragma once
 
-#include <optional>
-
 #include <libhal/functional.hpp>
 #include <libhal/i2c.hpp>
 #include <libhal/output_pin.hpp>
 #include <libhal/pointers.hpp>
 #include <libhal/serial.hpp>
 #include <libhal/steady_clock.hpp>
+#include <libhal/units.hpp>
 
-struct resource_list
-{
-  hal::callback<void()> reset{};
-  std::optional<hal::serial*> console{};
-  std::optional<hal::steady_clock*> clock{};
-  std::optional<hal::output_pin*> status_led{};
-  std::optional<hal::i2c*> i2c{};
-  // Add more driver interfaces here ...
-};
+namespace resources {
+std::pmr::polymorphic_allocator<> driver_allocator();
+void reset();
+void sleep(hal::time_duration p_duration);
+hal::v5::strong_ptr<hal::serial> console();
+hal::v5::strong_ptr<hal::steady_clock> clock();
+hal::v5::strong_ptr<hal::output_pin> status_led();
+hal::v5::strong_ptr<hal::i2c> i2c();
+hal::v5::strong_ptr<hal::v5::serial> usb_serial();
+hal::v5::strong_ptr<hal::v5::serial> v5_console(hal::usize p_buffer_size);
+}  // namespace resources
 
 // Application function is implemented by one of the .cpp files.
-resource_list initialize_platform();
-void application(resource_list& p_map);
-[[noreturn]] void terminate_handler() noexcept;
-
-hal::v5::strong_ptr<hal::v5::serial> usb_serial();
-hal::v5::strong_ptr<hal::v5::serial> serial_console(hal::usize p_buffer_size);
-hal::v5::strong_ptr<hal::v5::steady_clock> steady_clock();
+void initialize_platform();
+void application();

@@ -25,6 +25,33 @@
 
 #include <resource_list.hpp>
 
+[[noreturn]] void terminate_handler() noexcept
+{
+  if (not resources::status_led() && not resources::status_led()) {
+    // spin here until debugger is connected
+    while (true) {
+      continue;
+    }
+  }
+
+  // Otherwise, blink the led in a pattern
+
+  auto led = resources::status_led();
+  auto clock = resources::clock();
+
+  while (true) {
+    using namespace std::chrono_literals;
+    led->level(false);
+    hal::delay(*clock, 100ms);
+    led->level(true);
+    hal::delay(*clock, 100ms);
+    led->level(false);
+    hal::delay(*clock, 100ms);
+    led->level(true);
+    hal::delay(*clock, 1000ms);
+  }
+}
+
 resource_list initialize_platform()
 {
   using namespace hal::literals;

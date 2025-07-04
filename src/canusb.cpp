@@ -19,6 +19,7 @@
 #include <array>
 #include <charconv>
 #include <cstddef>
+#include <libhal/pointers.hpp>
 #include <optional>
 #include <span>
 #include <string_view>
@@ -70,14 +71,14 @@ std::span<char const> to_chars(std::span<hal::byte const> p_data)
 /**
  * @brief Parse CANUSB protocol string to CAN message
  */
-std::optional<hal::v5::can_message> string_to_can_message(
+std::optional<hal::can_message> string_to_can_message(
   std::span<hal::byte const> p_command)
 {
   if (p_command.empty()) {
     return std::nullopt;
   }
 
-  hal::v5::can_message message{};
+  hal::can_message message{};
   std::size_t format_size = 0;
   std::size_t id_byte_length = 0;
   auto const command = p_command[0];
@@ -195,7 +196,7 @@ struct canusb_command_buffer
  * @brief Convert CAN message to CANUSB protocol command buffer
  */
 canusb_command_buffer can_message_to_command_buffer(
-  hal::v5::can_message const& p_message)
+  hal::can_message const& p_message)
 {
   canusb_command_buffer result;
 
@@ -220,7 +221,7 @@ canusb_command_buffer can_message_to_command_buffer(
     std::array<char, 4> id_buffer;
     std::snprintf(
       id_buffer.data(), id_buffer.size(), "%03" PRIX32, p_message.id);
-    result.append(id_buffer);
+    result.append(std::span(id_buffer).first(3));
   }
 
   // Add length
@@ -230,9 +231,11 @@ canusb_command_buffer can_message_to_command_buffer(
   if (!p_message.remote_request) {
     for (std::size_t i = 0; i < p_message.length; i++) {
       std::array<char, 3> byte_buffer;
-      std::snprintf(
-        byte_buffer.data(), byte_buffer.size(), "%02X", p_message.payload[i]);
-      result.append(byte_buffer);
+      std::snprintf(byte_buffer.data(),
+                    byte_buffer.size(),
+                    "%02" PRIX8,
+                    p_message.payload[i]);
+      result.append(std::span(byte_buffer).first(2));
     }
   }
 
@@ -242,41 +245,101 @@ canusb_command_buffer can_message_to_command_buffer(
 
 }  // anonymous namespace
 
+class canusb_bus_manager : public hal::v5::can_bus_manager
+{
+public:
+  canusb_bus_manager(hal::v5::strong_ptr<canusb> const& p_manager)
+    : m_manager(p_manager)
+  {
+  }
+
+private:
+  friend class canusb;
+  void driver_baud_rate(hal::u32 p_hertz) override;
+  void driver_filter_mode(accept p_accept) override;
+  void driver_on_bus_off(optional_bus_off_handler& p_callback) override;
+  void driver_bus_on() override;
+  hal::v5::strong_ptr<canusb> m_manager;
+  optional_bus_off_handler m_bus_off_handler;
+};
+
+class canusb_transceiver : public hal::can_transceiver
+{
+public:
+  canusb_transceiver(hal::v5::strong_ptr<canusb> const& p_manager,
+                     std::pmr::polymorphic_allocator<> p_allocator,
+                     hal::usize p_capacity)
+    : m_manager(p_manager)
+    , m_circular_buffer(p_allocator, p_capacity)
+  {
+  }
+
+private:
+  friend class canusb;
+  void process_incoming_serial_data();
+
+  u32 driver_baud_rate() override;
+  void driver_send(hal::can_message const& p_message) override;
+  std::span<hal::can_message const> driver_receive_buffer() override;
+  hal::usize driver_receive_cursor() override;
+
+  hal::v5::strong_ptr<canusb> m_manager;
+  hal::v5::circular_buffer<hal::can_message> m_circular_buffer;
+  hal::usize m_last_serial_cursor = 0;
+  std::array<hal::byte, 32> m_parse_buffer{};
+  hal::usize m_parse_buffer_pos = 0;
+};
+
 // ============================================================================
 // canusb implementation
 // ============================================================================
 
-hal::v5::strong_ptr<canusb::can_bus_manager> canusb::acquire_can_bus_manager(
-  std::pmr::polymorphic_allocator<> p_allocator)
+hal::v5::strong_ptr<canusb> canusb::create(
+  std::pmr::polymorphic_allocator<> p_allocator,
+  hal::v5::strong_ptr<hal::v5::serial> const& p_serial)
 {
-  if (m_bus_manager_acquired) {
-    hal::safe_throw(hal::device_or_resource_busy(this));
-  }
-
-  m_bus_manager_acquired = true;
-  auto self = strong_from_this();
-  return hal::v5::make_strong_ptr<can_bus_manager>(p_allocator, self);
+  return hal::v5::make_strong_ptr<canusb>(p_allocator, p_serial);
 }
 
-hal::v5::strong_ptr<canusb::can_transceiver> canusb::acquire_can_transceiver(
+canusb::canusb(hal::v5::strong_ptr_only_token,
+               hal::v5::strong_ptr<hal::v5::serial> const& p_serial)
+  : m_serial(p_serial)
+{
+}
+
+hal::v5::strong_ptr<v5::can_bus_manager> acquire_can_bus_manager(
   std::pmr::polymorphic_allocator<> p_allocator,
+  hal::v5::strong_ptr<canusb> const& p_manager)
+{
+  if (p_manager->m_bus_manager_acquired) {
+    hal::safe_throw(hal::device_or_resource_busy(&(*p_manager)));
+  }
+
+  p_manager->m_bus_manager_acquired = true;
+
+  return hal::v5::make_strong_ptr<canusb_bus_manager>(p_allocator, p_manager);
+}
+
+hal::v5::strong_ptr<hal::can_transceiver> acquire_can_transceiver(
+  std::pmr::polymorphic_allocator<> p_allocator,
+  hal::v5::strong_ptr<canusb> const& p_manager,
   hal::usize p_buffer_size)
 {
-  if (m_transceiver_acquired) {
-    hal::safe_throw(hal::device_or_resource_busy(this));
+  if (p_manager->m_transceiver_acquired) {
+    hal::safe_throw(hal::device_or_resource_busy(&(*p_manager)));
   }
 
-  m_transceiver_acquired = true;
-  auto self = strong_from_this();
-  return hal::v5::make_strong_ptr<can_transceiver>(
-    p_allocator, self, p_allocator, p_buffer_size);
+  p_manager->m_transceiver_acquired = true;
+  auto driver = hal::v5::make_strong_ptr<canusb_transceiver>(
+    p_allocator, p_manager, p_allocator, p_buffer_size);
+  return driver;
 }
 
 // ============================================================================
-// canusb::can_bus_manager implementation
+// canusb_bus_manager implementation
 // ============================================================================
 
-void canusb::can_bus_manager::driver_baud_rate(hal::u32 p_hertz)
+void canusb_bus_manager::driver_baud_rate(hal::u32 p_hertz)
 {
   if (m_manager->m_is_open) {
     hal::safe_throw(hal::operation_not_permitted(this));
@@ -297,20 +360,19 @@ void canusb::can_bus_manager::driver_baud_rate(hal::u32 p_hertz)
   m_manager->m_current_baud_rate = p_hertz;
 }
 
-void canusb::can_bus_manager::driver_filter_mode(accept)
+void canusb_bus_manager::driver_filter_mode(accept)
 {
   // Filter mode does nothing as specified in the requirements
 }
 
-void canusb::can_bus_manager::driver_on_bus_off(
-  optional_bus_off_handler& p_callback)
+void canusb_bus_manager::driver_on_bus_off(optional_bus_off_handler& p_callback)
 {
   // Store the callback but CANUSB protocol doesn't provide bus-off
   // notifications
   m_bus_off_handler = p_callback;
 }
 
-void canusb::can_bus_manager::driver_bus_on()
+void canusb_bus_manager::driver_bus_on()
 {
   if (m_manager->m_is_open) {
     return;  // Already open
@@ -324,27 +386,25 @@ void canusb::can_bus_manager::driver_bus_on()
 }
 
 // ============================================================================
-// canusb::can_transceiver implementation
+// canusb_transceiver implementation
 // ============================================================================
 
-hal::u32 canusb::can_transceiver::driver_baud_rate()
+hal::u32 canusb_transceiver::driver_baud_rate()
 {
   return m_manager->m_current_baud_rate;
 }
 
-void canusb::can_transceiver::driver_send(hal::v5::can_message const& p_message)
+void canusb_transceiver::driver_send(hal::can_message const& p_message)
 {
-  if (!m_manager->m_is_open) {
+  if (not m_manager->m_is_open) {
     hal::safe_throw(hal::operation_not_supported(this));
   }
 
-  auto command_str = can_message_to_command_buffer(p_message);
-  auto command_bytes = std::span(command_str.data.data(), command_str.size);
-  m_manager->m_serial->write(command_bytes);
+  auto const command_str = can_message_to_command_buffer(p_message);
+  m_manager->m_serial->write(command_str.span());
 }
 
-std::span<hal::v5::can_message const>
-canusb::can_transceiver::driver_receive_buffer()
+std::span<hal::can_message const> canusb_transceiver::driver_receive_buffer()
 {
   // Process any new serial data when this method is called
   process_incoming_serial_data();
@@ -352,7 +412,7 @@ canusb::can_transceiver::driver_receive_buffer()
   return { m_circular_buffer.data(), m_circular_buffer.capacity() };
 }
 
-std::size_t canusb::can_transceiver::driver_receive_cursor()
+std::size_t canusb_transceiver::driver_receive_cursor()
 {
   // Process any new serial data when this method is called
   process_incoming_serial_data();
@@ -360,7 +420,7 @@ std::size_t canusb::can_transceiver::driver_receive_cursor()
   return m_circular_buffer.write_index();
 }
 
-void canusb::can_transceiver::process_incoming_serial_data()
+void canusb_transceiver::process_incoming_serial_data()
 {
   auto serial_buffer = m_manager->m_serial->receive_buffer();
   auto current_cursor = m_manager->m_serial->receive_cursor();

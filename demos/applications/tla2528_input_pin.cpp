@@ -14,12 +14,12 @@
 using namespace hal::literals;
 using namespace std::chrono_literals;
 
-void application(resource_list& p_map)
+void application()
 {
-  auto& terminal = *p_map.console.value();
-  auto& i2c = *p_map.i2c.value();
-  auto& steady_clock = *p_map.clock.value();
-  auto gpi_expander = hal::expander::tla2528(i2c);
+  auto console = resources::console();
+  auto i2c = resources::i2c();
+  auto steady_clock = resources::clock();
+  auto gpi_expander = hal::expander::tla2528(*i2c);
   std::array<hal::expander::tla2528_input_pin, 8> gpis{
     make_input_pin(gpi_expander, 0), make_input_pin(gpi_expander, 1),
     make_input_pin(gpi_expander, 2), make_input_pin(gpi_expander, 3),
@@ -28,10 +28,10 @@ void application(resource_list& p_map)
   };
 
   while (true) {
-    hal::print(terminal, "\nvalues:");
+    hal::print(*console, "\nvalues:");
     for (int i = 0; i < 8; i++) {
-      hal::print<4>(terminal, "%x", gpis[i].level());
+      hal::print<4>(*console, "%x", gpis[i].level());
     }
-    hal::delay(steady_clock, 500ms);
+    resources::sleep(500ms);
   }
 }

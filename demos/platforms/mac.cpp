@@ -12,46 +12,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <exception>
+#include <cstdio>
+
+#include <atomic>
+#include <chrono>
+#include <memory_resource>
+#include <thread>
 
 #include <libhal-mac/serial.hpp>
 #include <libhal/error.hpp>
 #include <libhal/pointers.hpp>
 #include <libhal/serial.hpp>
+#include <libhal/steady_clock.hpp>
 #include <libhal/units.hpp>
 
-#include <memory_resource>
 #include <resource_list.hpp>
 
-resource_list initialize_platform()
-{
-  using namespace hal::literals;
-
-  // std::set_terminate(terminate_handler);
-
-  return {
-    .reset = +[]() { exit(-1); },
-  };
-}
-
-hal::v5::strong_ptr<hal::v5::serial> usb_serial()
-{
-  constexpr auto usb_serial_path = "/dev/tty.usbserial-59760073631";
-  return hal::mac::serial::create(std::pmr::new_delete_resource(),
-                                  usb_serial_path,
-                                  1024,
-                                  { .baud_rate = 115200 });
-}
-
-#include <atomic>
-#include <chrono>
-#include <cstdio>
-#include <ratio>
-#include <thread>
-
-#include <libhal/pointers.hpp>
-#include <libhal/serial.hpp>
-#include <libhal/steady_clock.hpp>
+namespace resources {
 
 // Console Serial Implementation
 class console_serial : public hal::v5::serial
@@ -88,7 +65,7 @@ private:
 
   std::span<hal::byte const> driver_receive_buffer() override
   {
-    return std::span<hal::byte const>(m_receive_buffer);
+    return m_receive_buffer;
   }
 
   hal::usize driver_cursor() override
@@ -140,7 +117,7 @@ private:
     // frequency = 1 / period = period::den / period::num
     constexpr auto frequency_hz = period::den / period::num;
 
-    return hal::v5::hertz{ frequency_hz };
+    return frequency_hz;
   }
 
   hal::u64 driver_uptime() override
@@ -153,17 +130,124 @@ private:
   std::chrono::steady_clock::time_point m_start_time;
 };
 
-// Factory Functions
-hal::v5::strong_ptr<hal::v5::serial> serial_console(hal::usize p_buffer_size)
+// Steady Clock Implementation
+class legacy_chrono_steady_clock : public hal::steady_clock
 {
-  return hal::v5::make_strong_ptr<console_serial>(
-    std::pmr::new_delete_resource(),
-    std::pmr::new_delete_resource(),
-    p_buffer_size);
+public:
+  legacy_chrono_steady_clock()
+    : m_start_time(std::chrono::steady_clock::now())
+  {
+  }
+
+private:
+  hal::hertz driver_frequency() override
+  {
+    // std::chrono::steady_clock frequency is represented by its period
+    using period = std::chrono::steady_clock::period;
+
+    // Convert period (seconds per tick) to frequency (ticks per second)
+    // frequency = 1 / period = period::den / period::num
+    constexpr auto frequency_hz = period::den / period::num;
+
+    return static_cast<hal::hertz>(frequency_hz);
+  }
+
+  hal::u64 driver_uptime() override
+  {
+    auto const now = std::chrono::steady_clock::now();
+    auto const duration = now - m_start_time;
+    return duration.count();
+  }
+
+  std::chrono::steady_clock::time_point m_start_time;
+};
+
+void reset()
+{
+  exit(-1);
 }
 
-hal::v5::strong_ptr<hal::v5::steady_clock> steady_clock()
+void sleep(hal::time_duration p_duration)
 {
-  return hal::v5::make_strong_ptr<chrono_steady_clock>(
-    std::pmr::new_delete_resource());
+  std::this_thread::sleep_for(p_duration);
+}
+
+std::pmr::polymorphic_allocator<> driver_allocator()
+{
+  return std::pmr::new_delete_resource();
+}
+
+hal::v5::optional_ptr<hal::serial> console_ptr;
+hal::v5::optional_ptr<legacy_chrono_steady_clock> clock_ptr;
+hal::v5::optional_ptr<hal::output_pin> status_led_ptr;
+hal::v5::optional_ptr<hal::i2c> i2c_ptr;
+hal::v5::optional_ptr<hal::mac::serial> usb_serial_ptr;
+hal::v5::optional_ptr<hal::v5::serial> serial_console_ptr;
+hal::v5::optional_ptr<hal::v5::steady_clock> steady_clock_ptr;
+
+hal::v5::strong_ptr<hal::serial> console()
+{
+  throw hal::bad_optional_ptr_access(nullptr);
+}
+
+hal::v5::strong_ptr<hal::steady_clock> clock()
+{
+  if (clock_ptr) {
+    return clock_ptr;
+  }
+
+  clock_ptr =
+    hal::v5::make_strong_ptr<legacy_chrono_steady_clock>(driver_allocator());
+  return clock_ptr;
+}
+
+hal::v5::strong_ptr<hal::output_pin> status_led()
+{
+  throw hal::bad_optional_ptr_access(nullptr);
+}
+
+hal::v5::strong_ptr<hal::i2c> i2c()
+{
+  throw hal::bad_optional_ptr_access(nullptr);
+}
+
+hal::v5::strong_ptr<hal::v5::serial> usb_serial()
+{
+  if (usb_serial_ptr) {
+    return usb_serial_ptr;
+  }
+  // NOTE: Change this to the USB serial port path...
+  constexpr auto usb_serial_path = "/dev/tty.usbserial-59760073631";
+  usb_serial_ptr = hal::mac::serial::create(
+    driver_allocator(), usb_serial_path, 1024, { .baud_rate = 115200 });
+  using namespace std::literals;
+
+  // Assert DTR and RTS
+  usb_serial_ptr->set_control_signals(true, true);
+  std::this_thread::sleep_for(50ms);
+  // De-activate RTS (boot) line
+  usb_serial_ptr->set_rts(false);
+  std::this_thread::sleep_for(50ms);
+  // De-activate DTR (reset) line to reset device
+  usb_serial_ptr->set_dtr(false);
+  std::this_thread::sleep_for(50ms);
+
+  return usb_serial_ptr;
+}
+
+hal::v5::strong_ptr<hal::v5::serial> v5_console(hal::usize p_buffer_size)
+{
+  if (serial_console_ptr) {
+    return serial_console_ptr;
+  }
+
+  serial_console_ptr = hal::v5::make_strong_ptr<console_serial>(
+    driver_allocator(), driver_allocator(), p_buffer_size);
+  return serial_console_ptr;
+}
+}  // namespace resources
+
+void initialize_platform()
+{
+  // do nothing
 }

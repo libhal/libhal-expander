@@ -25,95 +25,33 @@
 
 #include <resource_list.hpp>
 
-namespace hal {
-
-/**
- * @ingroup Serial
- * @brief Write formatted string data to serial buffer and drop return value
- *
- * Uses snprintf internally and writes to a local statically allocated an array.
- * This function will never dynamically allocate like how standard std::printf
- * does.
- *
- * This function does NOT include the NULL character when transmitting the data
- * over the serial port.
- *
- * @tparam buffer_size - Size of the buffer to allocate on the stack to store
- * the formatted message.
- * @tparam Parameters - printf arguments
- * @param p_serial - serial port to write data to
- * @param p_format - printf style null terminated format string
- * @param p_parameters - printf arguments
- */
-template<size_t buffer_size, typename... Parameters>
-void print(v5::serial& p_serial,
-           char const* p_format,
-           Parameters... p_parameters)
-{
-  static_assert(buffer_size > 2);
-  constexpr int unterminated_max_string_size =
-    static_cast<int>(buffer_size) - 1;
-
-  std::array<char, buffer_size> buffer{};
-  int length =
-    std::snprintf(buffer.data(), buffer.size(), p_format, p_parameters...);
-
-  if (length > unterminated_max_string_size) {
-    // Print out what was able to be written to the buffer
-    length = unterminated_max_string_size;
-  }
-
-  p_serial.write(as_bytes(std::string_view(buffer.data(), length)));
-}
-std::uint64_t future_deadline(hal::v5::steady_clock& p_steady_clock,
-                              hal::time_duration p_duration)
-{
-  using period = decltype(p_duration)::period;
-  auto const frequency = p_steady_clock.frequency();
-  auto const tick_period = wavelength<period>(static_cast<float>(frequency));
-  auto ticks_required = p_duration / tick_period;
-  using unsigned_ticks = std::make_unsigned_t<decltype(ticks_required)>;
-
-  if (ticks_required <= 1) {
-    ticks_required = 1;
-  }
-
-  auto const ticks = static_cast<unsigned_ticks>(ticks_required);
-  auto const future_timestamp = ticks + p_steady_clock.uptime();
-
-  return future_timestamp;
-}
-void delay(hal::v5::steady_clock& p_steady_clock, hal::time_duration p_duration)
-{
-  auto ticks_until_timeout = future_deadline(p_steady_clock, p_duration);
-  while (p_steady_clock.uptime() < ticks_until_timeout) {
-    continue;
-  }
-}
-}  // namespace hal
-
-void application(resource_list&)
+void application()
 {
   using namespace std::literals;
   using namespace hal::literals;
 
-  auto serial = usb_serial();
-  auto canusb = hal::v5::make_strong_ptr<hal::expander::canusb>(
-    std::pmr::new_delete_resource(), serial);
+  hal::v5::optional_ptr<hal::serial> console;
+  try {
+    auto v5_console = resources::v5_console(512);
+    console =
+      hal::make_serial_converter(resources::driver_allocator(), v5_console);
+  } catch (...) {
+    console = resources::console();
+  }
+  hal::print(*console, "CANUSB Application Starting...\n\n"sv);
+
+  auto serial = resources::usb_serial();
+  auto canusb =
+    hal::expander::canusb::create(resources::driver_allocator(), serial);
 
   auto manager =
-    canusb->acquire_can_bus_manager(std::pmr::new_delete_resource());
+    hal::acquire_can_bus_manager(resources::driver_allocator(), canusb);
+  auto transceiver =
+    hal::acquire_can_transceiver(resources::driver_allocator(), canusb, 32);
+
   manager->baud_rate(1_MHz);
   manager->filter_mode(hal::v5::can_bus_manager::accept::all);
   manager->bus_on();
-  // manager->on_bus_off()
-
-  auto transceiver =
-    canusb->acquire_can_transceiver(std::pmr::new_delete_resource(), 32);
-
-  auto clock = steady_clock();
-  auto console = serial_console(512);
-  console->write(hal::as_bytes("[canusb] Application Starting...\n\n"sv));
 
   auto const receive_buffer = transceiver->receive_buffer();
   auto previous_cursor = transceiver->receive_cursor();
@@ -121,26 +59,40 @@ void application(resource_list&)
   while (true) {
     auto const cursor = transceiver->receive_cursor();
 
+    resources::sleep(1s);
+
+    transceiver->send({
+      .id = 0x111,
+      .length = 3,
+      .payload = { 0xAB, 0xCD, 0xEF },
+    });
+
     if (cursor == previous_cursor) {
       continue;
     }
 
-    console->write(hal::as_bytes("Received: \n"sv));
+    hal::print(*console, "Received: \n"sv);
 
     if (cursor < previous_cursor) {
       for (auto const& message : receive_buffer.subspan(previous_cursor)) {
-        hal::print<32>(*console, "  id: 0x%08" PRIX32 "\n", message.id);
+        hal::print<32>(*console, "   id: 0x%08" PRIX32 "\n", message.id);
+        hal::print<32>(*console, "  len: 0x%08" PRIX32 "\n", message.length);
       }
       previous_cursor = 0;
     }
 
     auto const delta = cursor - previous_cursor;
     for (auto const& message : receive_buffer.subspan(previous_cursor, delta)) {
-      hal::print<32>(*console, "  id: 0x%08" PRIX32 "\n", message.id);
+      hal::print<32>(*console, "   id: 0x%08" PRIX32 "\n", message.id);
+      hal::print<32>(*console, "  len: 0x%08" PRIX32 "\n", message.length);
+      hal::print(*console, " data: "sv);
+      for (auto const& byte :
+           std::span(message.payload).first(message.length)) {
+        hal::print<32>(*console, "0x%02" PRIX8 " ", byte);
+      }
+      hal::print(*console, "\n"sv);
     }
 
     previous_cursor = cursor;
-
-    hal::delay(*clock, 1s);
   }
 }

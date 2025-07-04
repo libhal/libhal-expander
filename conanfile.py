@@ -33,7 +33,10 @@ class libhal_expander_conan(ConanFile):
         # Adds libhal and libhal-util as transitive headers, meaning library
         # consumers get the libhal and libhal-util headers downstream.
         bootstrap = self.python_requires["libhal-bootstrap"]
-        bootstrap.module.add_library_requirements(self)
+        bootstrap.module.add_library_requirements(
+            self,
+            override_libhal_version="4.12.1",
+            override_libhal_util_version="5.5.0")
 
     def package_info(self):
         self.cpp_info.libs = ["libhal-expander"]

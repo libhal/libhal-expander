@@ -20,54 +20,14 @@
 
 #include <resource_list.hpp>
 
-resource_list resources{};
-
-[[noreturn]] void terminate_handler() noexcept
-{
-  if (not resources.status_led && not resources.status_led) {
-    // spin here until debugger is connected
-    while (true) {
-      continue;
-    }
-  }
-
-  // Otherwise, blink the led in a pattern
-
-  auto& led = *resources.status_led.value();
-  auto& clock = *resources.clock.value();
-
-  while (true) {
-    using namespace std::chrono_literals;
-    led.level(false);
-    hal::delay(clock, 100ms);
-    led.level(true);
-    hal::delay(clock, 100ms);
-    led.level(false);
-    hal::delay(clock, 100ms);
-    led.level(true);
-    hal::delay(clock, 1000ms);
-  }
-}
-
 int main()
 {
-  try {
-    resources = initialize_platform();
-  } catch (...) {
-    while (true) {
-      // halt here and wait for a debugger to connect
-      continue;
-    }
-  }
+  initialize_platform();
 
   try {
-    application(resources);
-  } catch (std::bad_optional_access const& e) {
-    if (resources.console) {
-      hal::print(*resources.console.value(),
-                 "A resource required by the application was not available!\n"
-                 "Calling terminate!\n");
-    }
+    application();
+  } catch (hal::bad_optional_ptr_access const& p_error) {
+    throw;
   }  // Allow any other exceptions to terminate the application
 
   // Terminate if the code reaches this point.
