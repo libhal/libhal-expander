@@ -46,30 +46,46 @@ void application()
 
   auto manager =
     hal::acquire_can_bus_manager(resources::driver_allocator(), canusb);
-  auto transceiver =
-    hal::acquire_can_transceiver(resources::driver_allocator(), canusb, 32);
 
+  hal::print(*console, "Setting baud rate to 1 MHz\n"sv);
   manager->baud_rate(1_MHz);
   manager->filter_mode(hal::v5::can_bus_manager::accept::all);
   manager->bus_on();
 
+  resources::sleep(1s);
+
+  hal::print(*console, "Acquiring can transceiver\n"sv);
+  auto transceiver =
+    hal::acquire_can_transceiver(resources::driver_allocator(), canusb, 32);
+
   auto const receive_buffer = transceiver->receive_buffer();
   auto previous_cursor = transceiver->receive_cursor();
+
+  hal::print(*console, "A new message is checked for every 500ms\n"sv);
+
+  hal::print(
+    *console,
+    "If a message is received, this application will transmit the following "
+    "CAN message:\n"sv);
+
+  hal::print(
+    *console,
+    "  can_message{ .id = 0x111, .length = 3, .payload = { 0xAB, 0xCD, 0xEF }}\n"sv);
 
   while (true) {
     auto const cursor = transceiver->receive_cursor();
 
-    resources::sleep(1s);
+    resources::sleep(500ms);
+
+    if (cursor == previous_cursor) {
+      continue;
+    }
 
     transceiver->send({
       .id = 0x111,
       .length = 3,
       .payload = { 0xAB, 0xCD, 0xEF },
     });
-
-    if (cursor == previous_cursor) {
-      continue;
-    }
 
     hal::print(*console, "Received: \n"sv);
 
