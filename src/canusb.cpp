@@ -257,7 +257,7 @@ private:
   friend class canusb;
   void driver_baud_rate(hal::u32 p_hertz) override;
   void driver_filter_mode(accept p_accept) override;
-  void driver_on_bus_off(optional_bus_off_handler& p_callback) override;
+  void driver_on_bus_off(optional_bus_off_handler p_callback) override;
   void driver_bus_on() override;
   hal::v5::strong_ptr<canusb> m_manager;
   optional_bus_off_handler m_bus_off_handler;
@@ -369,7 +369,7 @@ void canusb_bus_manager::driver_filter_mode(accept)
   // Filter mode does nothing as specified in the requirements
 }
 
-void canusb_bus_manager::driver_on_bus_off(optional_bus_off_handler& p_callback)
+void canusb_bus_manager::driver_on_bus_off(optional_bus_off_handler p_callback)
 {
   // Store the callback but CANUSB protocol doesn't provide bus-off
   // notifications
