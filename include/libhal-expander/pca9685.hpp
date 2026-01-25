@@ -94,6 +94,34 @@ public:
   };
 
   /**
+   * @brief Representation & implementation of a pca9685 pwm16_channel
+   *
+   * This allows the user to only retrieve the frequency, and update duty cycle
+   * for any channel.
+   */
+  class pwm16_channel : public hal::pwm16_channel
+  {
+  private:
+    pwm16_channel(pca9685* p_pca9685, hal::byte p_channel);
+
+    /**
+     * @brief Retrieves the current frequency of the entire device.
+     */
+    u32 driver_frequency() override;
+    /**
+     * @brief Set the duty cycle of an individual channel
+     *
+     * @param p_duty_cycle - the desired pwm duty cycle from 0 - 65536
+     */
+    void driver_duty_cycle(u16 p_duty_cycle) override;
+
+    pca9685* m_pca9685;
+    hal::byte m_channel;
+
+    friend class pca9685;
+  };
+
+  /**
    * @brief Enumeration describing the pin state choices if the OE pin is active
    *
    */
@@ -153,6 +181,8 @@ public:
    *
    * NOTE: If two pwm channel objects are created with the same channel number,
    * both objects will be able to control the individual pin.
+   * @deprecated: Prefer PWM16_channel version instead of this one as it will
+   * soon be deprecated.
    *
    * @tparam channel - Which channel pin to get. Can be from 0 to 15.
    * @return pwm_channel - implementation of hal::pwm for an individual pin on
@@ -164,9 +194,39 @@ public:
     static_assert(channel <= max_channel_count,
                   "The PCA9685 only has 16 channels!");
 
-    return pwm_channel(this, channel);
+    return { this, channel };
   }
 
+  /**
+   * @brief Get a pwm16 channel object
+   *
+   * NOTE: If two pwm channel objects are created with the same channel number,
+   * both objects will be able to control the individual pin.
+   *
+   * @tparam channel - Which channel pin to get. Can be from 0 to 15.
+   * @return pwm16_channel - implementation of hal::pwm16_channel for an
+   * individual pin on the pca9685.
+   */
+  template<hal::byte channel>
+  pwm16_channel get_pwm16_channel()
+  {
+    static_assert(channel <= max_channel_count,
+                  "The PCA9685 only has 16 channels!");
+
+    return { this, channel };
+  }
+
+  /**
+   * @brief Update's the entire device's frequency.
+   *
+   * @param p_frequency - frequency to set the whole pca9685 device to.
+   * @throws hal::argument_out_of_domain - if the frequency is outside of the
+   * available frequency ranges.
+   */
+  void set_pwm_group_frequency(hal::hertz p_frequency)
+  {
+    set_channel_frequency(p_frequency);
+  }
   /**
    * @brief Configure the device
    *
@@ -180,9 +240,11 @@ public:
 private:
   void set_channel_frequency(hal::hertz p_frequency);
   void set_channel_duty_cycle(float p_duty_cycle, hal::byte p_channel);
+  hertz get_frequency();
 
   hal::i2c* m_i2c;
   hal::byte m_address;
   settings m_settings{};
+  hertz m_current_frequency;
 };
 }  // namespace hal::expander
