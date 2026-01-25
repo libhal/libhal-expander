@@ -39,6 +39,24 @@ constexpr hal::byte pwm_channel_address(hal::byte p_channel)
                                 (p_channel * byte_per_pwm_channel));
 }
 
+pca9685::pwm16_channel::pwm16_channel(pca9685* p_pca9685, hal::byte p_channel)
+  : m_pca9685(p_pca9685)
+  , m_channel(p_channel)
+{
+}
+
+void pca9685::pwm16_channel::driver_duty_cycle(u16 p_duty_cycle)
+{
+  u16 make_12_bit = (p_duty_cycle >> 4) && 0xFFF;
+  float duty_cycle = static_cast<float>(make_12_bit) / 0xFFF;
+  m_pca9685->set_channel_duty_cycle(duty_cycle, m_channel);
+}
+
+u32 pca9685::pwm16_channel::driver_frequency()
+{
+  return m_pca9685->get_frequency();
+}
+ 
 pca9685::pca9685(hal::i2c& p_i2c,
                  hal::byte p_address,
                  std::optional<pca9685::settings> p_settings)
@@ -117,11 +135,15 @@ void pca9685::set_channel_frequency(hal::hertz p_frequency)
              m_address,
              std::array{ prescaler_address, prescale_value_byte },
              hal::never_timeout());
-
+  
   // Configure device back to what it was before which may or may not be asleep
   configure(original_settings);
+  m_current_frequency = p_frequency;
 }
-
+hertz pca9685::get_frequency()
+{
+  return m_current_frequency;
+}
 // NOLINTNEXTLINE
 void pca9685::set_channel_duty_cycle(float p_duty_cycle, hal::byte p_channel)
 {
