@@ -47,7 +47,7 @@ pca9685::pwm16_channel::pwm16_channel(pca9685* p_pca9685, hal::byte p_channel)
 
 void pca9685::pwm16_channel::driver_duty_cycle(u16 p_duty_cycle)
 {
-  u16 make_12_bit = (p_duty_cycle >> 4) && 0xFFF;
+  u16 make_12_bit = (p_duty_cycle >> 4) & 0xFFF;
   float duty_cycle = static_cast<float>(make_12_bit) / 0xFFF;
   m_pca9685->set_channel_duty_cycle(duty_cycle, m_channel);
 }
@@ -140,6 +140,7 @@ void pca9685::set_channel_frequency(hal::hertz p_frequency)
   configure(original_settings);
   m_current_frequency = p_frequency;
 }
+
 hertz pca9685::get_frequency()
 {
   return m_current_frequency;
