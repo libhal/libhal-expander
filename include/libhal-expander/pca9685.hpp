@@ -181,8 +181,8 @@ public:
    *
    * NOTE: If two pwm channel objects are created with the same channel number,
    * both objects will be able to control the individual pin.
-   * NOTE: Prefer PWM16_channel version instead of this one as it will soon be
-   * deprecated.
+   * @deprecated: Prefer PWM16_channel version instead of this one as it will
+   * soon be deprecated.
    *
    * @tparam channel - Which channel pin to get. Can be from 0 to 15.
    * @return pwm_channel - implementation of hal::pwm for an individual pin on
@@ -194,7 +194,7 @@ public:
     static_assert(channel <= max_channel_count,
                   "The PCA9685 only has 16 channels!");
 
-    return pwm_channel(this, channel);
+    return { this, channel };
   }
 
   /**
@@ -204,8 +204,8 @@ public:
    * both objects will be able to control the individual pin.
    *
    * @tparam channel - Which channel pin to get. Can be from 0 to 15.
-   * @return pwm_channel - implementation of hal::pwm for an individual pin on
-   * the pca9685.
+   * @return pwm16_channel - implementation of hal::pwm16_channel for an
+   * individual pin on the pca9685.
    */
   template<hal::byte channel>
   pwm16_channel get_pwm16_channel()
@@ -213,7 +213,7 @@ public:
     static_assert(channel <= max_channel_count,
                   "The PCA9685 only has 16 channels!");
 
-    return pwm16_channel(this, channel);
+    return { this, channel };
   }
 
   /**
