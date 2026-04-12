@@ -17,9 +17,9 @@
 
 namespace hal::expander {
 tca9548a::tca9548a(hal::i2c& p_i2c,
-                   bool p_addr_bit_0 = false,
-                   bool p_addr_bit_1 = false,
-                   bool p_addr_bit_2 = false)
+                   bool p_addr_bit_0,
+                   bool p_addr_bit_1,
+                   bool p_addr_bit_2)
   : m_i2c(&p_i2c)
 {
   // calculate address byte
@@ -31,32 +31,53 @@ tca9548a::tca9548a(hal::i2c& p_i2c,
   m_address = 0b01110000 | inputs;
 }
 
-hal::byte get_control_register_byte()
+hal::byte tca9548a::get_control_register_byte()
 {
   std::array<hal::byte, 1> response;
   hal::read(*m_i2c, m_address, response);
-  // send nack to stop (double check this later)
+  // send nack to stop
   hal::write(*m_i2c, m_address, std::array<hal::byte, 1>{ 0x01 });
   return response[0];
 }
 
-void tca9548a::enable_port(std::uint8_t p_port_number)
+bool tca9548a::enable_port(std::uint8_t p_port_number)
 {
   hal::byte byte_to_send = 0x00;
   if (p_port_number < 8) {
-    hal::byte byte_to_send = 1 << p_port_number;
+    byte_to_send = byte_to_send | (1 << p_port_number);
   }
 
   std::array<hal::byte, 1> response;
   hal::write_then_read(
     *m_i2c, m_address, std::array<hal::byte, 1>{ byte_to_send }, response);
-  // check response for ack
+
+  if (response[0] == 0x00) {
+    return true;
+  }
+  return false;
 }
 
-void tca9548a::disable_port(std::uint8_t p_port_number)
+bool tca9548a::enable_multiple_ports(std::array<bool, 8> p_ports)
 {
+  hal::byte byte_to_send = 0;
+  for (std::int8_t i = 7; i >= 0; i--) {
+    byte_to_send = (byte_to_send << 1);
+    byte_to_send = byte_to_send | p_ports[i];
+  }
+
+  std::array<hal::byte, 1> response;
+  hal::write_then_read(
+    *m_i2c, m_address, std::array<hal::byte, 1>{ byte_to_send }, response);
+  if (response[0] == 0x00) {
+    return true;
+  }
+  return false;
+}
+
+bool tca9548a::disable_port(std::uint8_t p_port_number)
+{
+  hal::byte byte_to_send = get_control_register_byte();
   if (p_port_number < 8) {
-    hal::byte byte_to_send = get_control_register_byte();
     hal::byte bit_select = 1 << p_port_number;
     hal::byte bit_mask = ~bit_select;
     byte_to_send = byte_to_send & bit_mask;
@@ -65,21 +86,10 @@ void tca9548a::disable_port(std::uint8_t p_port_number)
   std::array<hal::byte, 1> response;
   hal::write_then_read(
     *m_i2c, m_address, std::array<hal::byte, 1>{ byte_to_send }, response);
-  // check response for ack
-}
-
-void tca9548a::set_multiple_ports(std::array<bool, 8> p_ports)
-{
-  hal::byte byte_to_send = 0;
-  for (std::uint8_t i = 7; i >= 0; i--) {
-    byte_to_send = byte_to_send << 1;
-    byte_to_send = byte_to_send & p_ports[i];
+  if (response[0] == 0x00) {
+    return true;
   }
-
-  std::array<hal::byte, 1> response;
-  hal::write_then_read(
-    *m_i2c, m_address, std::array<hal::byte, 1>{ byte_to_send }, response);
-  // check response for ack
+  return false;
 }
 
 std::array<bool, 8> tca9548a::get_ports_status()
@@ -89,7 +99,7 @@ std::array<bool, 8> tca9548a::get_ports_status()
   for (std::uint8_t i = 0; i < 8; i++) {
     hal::byte bit_mask = 1 << i;
     hal::byte selected_bit = control_register & bit_mask;
-    ports_statuses[i] = selected_bit << i;
+    ports_statuses[i] = static_cast<bool>(selected_bit >> i);
   }
   return ports_statuses;
 }

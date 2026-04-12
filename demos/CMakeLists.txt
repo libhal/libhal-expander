@@ -19,6 +19,7 @@ project(demos LANGUAGES CXX)
 libhal_build_demos(
   DEMOS
   pca9685
+  tca9548a_scan
   tla2528_adc
   tla2528_input_pin
   tla2528_output_pin

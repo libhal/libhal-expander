@@ -26,8 +26,13 @@ class libhal_expander_conan(ConanFile):
     topics = ("expander", "libhal", "driver")
     settings = "compiler", "build_type", "os", "arch"
 
-    python_requires = "libhal-bootstrap/[^4.0.0]"
+    python_requires = "libhal-bootstrap/[>=4.3.0 <5]"
     python_requires_extend = "libhal-bootstrap.library"
+
+    def set_version(self):
+        # Use latest if not specified via command line
+        if not self.version:
+            self.version = "latest"
 
     def requirements(self):
         # Adds libhal and libhal-util as transitive headers, meaning library
