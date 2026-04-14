@@ -27,14 +27,17 @@ void application()
   auto console = resources::console();
   auto clock = resources::clock();
   auto i2c = resources::i2c();
-  hal::expander::tca9548a i2c_mux = tca9548a(*i2c);
+  auto i2c_mux = hal::expander::tca9548a(*i2c);
 
   hal::print(*console, "I2c scanner starting!");
 
   while (true) {
     using namespace std::literals;
     for (std::uint8_t i = 0; i < 8; i++) {
-      i2c_mux.enable_port(i);
+      auto success = i2c_mux.enable_port(i);
+      if (!success) {
+        hal::print(*console, "\nPort set failed.");
+      }
       constexpr hal::byte first_i2c_address = 0x08;
       constexpr hal::byte last_i2c_address = 0x78;
 
@@ -47,7 +50,7 @@ void application()
           hal::print<12>(*console, "0x%02X ", address);
         }
       }
+      hal::delay(*clock, 1s);
     }
-    hal::delay(*clock, 1s);
   }
 }
