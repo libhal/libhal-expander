@@ -1,4 +1,4 @@
-# Copyright 2024 Khalil Estell
+# Copyright 2024 - 2025 Khalil Estell and the libhal contributors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ libhal_test_and_make_library(
   LIBRARY_NAME libhal-expander
 
   SOURCES
+  src/canusb.cpp
   src/pca9685.cpp
   src/tca9548a.cpp
   src/tla2528.cpp

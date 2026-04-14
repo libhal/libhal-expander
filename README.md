@@ -9,9 +9,7 @@ libhal compatible device drivers IO expander type devices.
 
 ## 📚 Software APIs & Usage
 
-To learn about the available drivers and APIs see the
-[API Reference](https://libhal.github.io/latest/api/)
-documentation page or look at the headers in the
+To learn about the available drivers and APIs see the the headers in the
 [`include/libhal-expander`](https://github.com/libhal/libhal-expander/tree/main/include/libhal-expander)
 directory.
 
@@ -21,48 +19,50 @@ Checkout the
 [🚀 Getting Started](https://libhal.github.io/getting_started/)
 instructions.
 
+## 📦 Building & installing the Library Package
+
+To build and install the package, start at the root of the repo and execute the
+following command:
+
+```bash
+conan create . -pr hal/tc/llvm -pr hal/mcu/stm32f103c8
+```
+
+To compile the package for the `lpc4078`, simply replace the `stm32f103c8`
+profile with the appropriate profile name. For example:
+
+```bash
+conan create . -pr hal/tc/llvm -pr hal/mcu/lpc4078
+```
+
+To build for you local machine, simply supply the OS
+
+```bash
+conan create . -pr hal/tc/llvm -pr hal/os/mac
+conan create . -pr hal/tc/llvm -pr hal/os/linux
+conan create . -pr hal/tc/llvm -pr hal/os/windows
+```
+
 ## 🏗️ Building Demos
+
+In order to build the demos you must have created `latest` version of the
+package. If you haven't done so, see:
+[📦 Building & installing the Library Package](#-building--installing-the-library-package).
 
 To build demos, start at the root of the repo and execute the following command:
 
 ```bash
-conan build demos -pr lpc4078 -pr arm-gcc-12.3
+conan build demos -pr hal/tc/llvm -pr hal/mcu/stm32f103c8
 ```
 
-or for the `lpc4074`
+Replace `hal/mcu/stm32f103c8` with:
 
-```bash
-conan build demos -pr lpc4074 -pr arm-gcc-12.3
-```
+- `hal/mcu/lcp4078`
+- `hal/bare/mod-lpc40-v5`
+- `hal/bare/mod-stm32f1-v5`
 
-or for the `stm32f103c8`
-
-```bash
-conan build demos -pr stm32f103c8 -pr arm-gcc-12.3
-```
-
-## 📦 Building & installing the Library Package
-
-To build and install the package, start at the root of the repo and execute the 
-following command:
-
-```bash
-conan create . -pr lpc4078 -pr arm-gcc-12.3 --version=latest
-```
-
-To compile the package for the `stm32f103c8` or `lpc4074`, simply replace the 
-`lpc4078` profile with the appropriate profile name. For example:
-
-```bash
-conan create . -pr stm32f103c8 -pr arm-gcc-12.3 --version=latest
-```
-
-> [!NOTE]
-> If you are developing the code, and simply need to test that the package builds
-> and that tests pass, use `conan build .` vs `conan create .`. This will build the
-> package locally in the current directory. You'll find the contents in the
-> `build/` directory at the root of the repo. Now links will point to the code
-> in the repo and NOT the conan package directory.
+Demos are only supported by the platforms listed in the `demos/platforms/`
+directory.
 
 ## 📋 Adding `libhal-expander` to your project
 
@@ -88,7 +88,6 @@ Replace `app.elf` with the name of your executable.
 
 The available headers for your app or library will exist in the
 [`include/libhal-expander/`](./include/libhal-expander) directory.
-
 
 ## 🌟 Package Semantic Versioning Explained
 

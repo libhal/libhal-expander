@@ -1,4 +1,4 @@
-# Copyright 2024 Khalil Estell
+# Copyright 2024 - 2025 Khalil Estell and the libhal contributors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ libhal_build_demos(
   tla2528_adc
   tla2528_input_pin
   tla2528_output_pin
+  canusb
 
   INCLUDES
   .

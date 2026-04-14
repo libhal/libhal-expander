@@ -1,4 +1,4 @@
-# Copyright 2024 Khalil Estell
+# Copyright 2024 - 2025 Khalil Estell and the libhal contributors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -26,20 +26,28 @@ class libhal_expander_conan(ConanFile):
     topics = ("expander", "libhal", "driver")
     settings = "compiler", "build_type", "os", "arch"
 
+<<<<<<< HEAD
     python_requires = "libhal-bootstrap/[>=4.3.0 <5]"
     python_requires_extend = "libhal-bootstrap.library"
 
     def set_version(self):
         # Use latest if not specified via command line
+=======
+    python_requires = "libhal-bootstrap/[>=4.4.0 <5]"
+    python_requires_extend = "libhal-bootstrap.library"
+
+    def set_version(self):
+>>>>>>> main
         if not self.version:
             self.version = "latest"
 
     def requirements(self):
-        # Adds libhal and libhal-util as transitive headers, meaning library
-        # consumers get the libhal and libhal-util headers downstream.
-        bootstrap = self.python_requires["libhal-bootstrap"]
-        bootstrap.module.add_library_requirements(self)
+        self.requires("libhal/[^4.12.1]", transitive_headers=True)
+        self.requires("libhal-util/[^5.5.0]", transitive_headers=True)
 
     def package_info(self):
         self.cpp_info.libs = ["libhal-expander"]
         self.cpp_info.set_property("cmake_target_name", "libhal::expander")
+
+    def package_id(self):
+        self.info.python_requires.major_mode()

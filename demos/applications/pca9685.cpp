@@ -18,18 +18,17 @@
 
 #include <resource_list.hpp>
 
-void application(resource_list& p_map)
+void application()
 {
   using namespace std::chrono_literals;
   using namespace hal::literals;
 
-  auto& clock = *p_map.clock.value();
-  auto& console = *p_map.console.value();
-  auto& i2c = *p_map.i2c.value();
+  auto console = resources::console();
+  auto i2c = resources::i2c();
 
-  hal::print(console, "[pca9685] Application Starting...\n\n");
+  hal::print(*console, "[pca9685] Application Starting...\n\n");
 
-  hal::expander::pca9685 pca9685(i2c, 0b100'0000);
+  hal::expander::pca9685 pca9685(*i2c, 0b100'0000);
   auto pwm0 = pca9685.get_pwm_channel<0>();
   auto pwm1 = pca9685.get_pwm_channel<1>();
   auto pwm2 = pca9685.get_pwm_channel<2>();
@@ -52,7 +51,7 @@ void application(resource_list& p_map)
 
   while (true) {
     for (float duty_cycle = 0.0f; duty_cycle < 1.05f; duty_cycle += 0.05f) {
-      hal::delay(clock, 50ms);
+      resources::sleep(50ms);
       pwm0.duty_cycle(duty_cycle);
       pwm1.duty_cycle(duty_cycle);
       pwm2.duty_cycle(duty_cycle);

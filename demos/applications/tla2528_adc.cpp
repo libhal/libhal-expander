@@ -14,12 +14,13 @@
 using namespace hal::literals;
 using namespace std::chrono_literals;
 
-void application(resource_list& p_map)
+void application()
 {
-  auto& terminal = *p_map.console.value();
-  auto& i2c = *p_map.i2c.value();
-  auto& steady_clock = *p_map.clock.value();
-  auto adc_mux = hal::expander::tla2528(i2c);
+  auto console = resources::console();
+  auto i2c = resources::i2c();
+  auto steady_clock = resources::clock();
+  auto adc_mux = hal::expander::tla2528(*i2c);
+
   std::array<hal::expander::tla2528_adc, 8> adcs{
     make_adc(adc_mux, 0), make_adc(adc_mux, 1), make_adc(adc_mux, 2),
     make_adc(adc_mux, 3), make_adc(adc_mux, 4), make_adc(adc_mux, 5),
@@ -27,10 +28,10 @@ void application(resource_list& p_map)
   };
 
   while (true) {
-    hal::print(terminal, "\nvalues:\n");
+    hal::print(*console, "\nvalues:\n");
     for (int i = 0; i < 8; i++) {
-      hal::print<64>(terminal, "%d:%f\n", i, adcs[i].read());
+      hal::print<64>(*console, "%d:%f\n", i, adcs[i].read());
     }
-    hal::delay(steady_clock, 500ms);
+    resources::sleep(500ms);
   }
 }
