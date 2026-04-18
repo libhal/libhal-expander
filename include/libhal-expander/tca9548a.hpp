@@ -44,29 +44,23 @@ public:
    * @brief Enable a single port to read and write to over i2c
    *
    * @param p_port_number - number of port to enable, 0 - 7
-   * @return true if tca9548a acks
-   * @return false if tca9548a nacks or does not respond
    */
-  bool enable_port(std::uint8_t p_port_number);
+  void enable_port(std::uint8_t p_port_number);
 
   /**
    * @brief Enable a multiple ports to read and write to over i2c
    *
    * @param p_ports - array of bools representing which ports to turn on or off
-   * @return true if tca9548a acks
-   * @return false if tca9548a nacks or does not respond
    */
-  bool enable_multiple_ports(std::array<bool, 8> p_ports);
+  void enable_multiple_ports(std::array<bool, 8> p_ports);
 
   /**
    * @brief Disable a single port while leaving other ports in their current
    * state
    *
    * @param p_port_number - number of port to disable, 0 - 7
-   * @return true if tca9548a acks
-   * @return false if tca9548a nacks or does not respond
    */
-  bool disable_port(std::uint8_t p_port_number);
+  void disable_port(std::uint8_t p_port_number);
 
   /**
    * @brief Get the status of each port

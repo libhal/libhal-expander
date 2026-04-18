@@ -36,7 +36,6 @@ class libhal_expander_conan(ConanFile):
     def requirements(self):
         self.requires("libhal/[^4.12.1]", transitive_headers=True)
         self.requires("libhal-util/[^5.5.0]", transitive_headers=True)
-        self.requires("libhal-exceptions/[^1.5.0]", transitive_headers=True)
 
     def package_info(self):
         self.cpp_info.libs = ["libhal-expander"]
