@@ -99,13 +99,12 @@ void initialize_platform()
 
 namespace resources {
 using namespace hal::literals;
+std::array<hal::byte, 1024> driver_memory{};
+std::pmr::monotonic_buffer_resource resource(driver_memory.data(),
+                                             driver_memory.size(),
+                                             std::pmr::null_memory_resource());
 std::pmr::polymorphic_allocator<> driver_allocator()
 {
-  static std::array<hal::byte, 1024> driver_memory{};
-  static std::pmr::monotonic_buffer_resource resource(
-    driver_memory.data(),
-    driver_memory.size(),
-    std::pmr::null_memory_resource());
   return &resource;
 }
 
