@@ -1,4 +1,4 @@
-// Copyright 2024 - 2025 Khalil Estell and the libhal contributors
+// Copyright 2026 Malia Labor and the libhal contributors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,6 +14,7 @@
 
 #pragma once
 
+#include <bitset>
 #include <cstdint>
 
 #include <libhal/i2c.hpp>
@@ -31,17 +32,17 @@ public:
    * @brief Construct a new tca9548a driver object
    *
    * @param p_i2c - an i2c bus driver to communicate with
-   * @param p_addr_bit_0 - bit 0 of address to be used for tca9548a
-   * @param p_addr_bit_1 - bit 1 of address to be used for tca9548a
-   * @param p_addr_bit_2 - bit 2 of address to be used for tca9548a
+   * @param p_address - address of the mux configured through address pins on
+   * chip,
    */
-  tca9548a(hal::i2c& p_i2c,
-           bool p_addr_bit_0 = false,
-           bool p_addr_bit_1 = false,
-           bool p_addr_bit_2 = false);
+  tca9548a(hal::i2c& p_i2c, u8 p_address = 0b01110000);
 
   /**
-   * @brief Enable a single port to read and write to over i2c
+   * @brief Enable a single port to read and write to over i2c.
+   *
+   * If provided  number is greater than 7, no port configuration byte is sent.
+   * This preseerves the state of the ports before attempting to set a port out
+   * of range.
    *
    * @param p_port_number - number of port to enable, 0 - 7
    */
@@ -50,9 +51,9 @@ public:
   /**
    * @brief Enable a multiple ports to read and write to over i2c
    *
-   * @param p_ports - array of bools representing which ports to turn on or off
+   * @param p_ports bitset representing state of each port
    */
-  void enable_multiple_ports(std::array<bool, 8> p_ports);
+  void enable_multiple_ports(std::bitset<8> p_ports);
 
   /**
    * @brief Disable a single port while leaving other ports in their current
@@ -68,12 +69,15 @@ public:
    * @return std::array<bool, 8> - array of bools representing which ports are
    * on or off
    */
-  std::array<bool, 8> get_ports_status();
+  std::bitset<8> get_ports_status();
 
 private:
   hal::byte get_control_register_byte();
 
   hal::i2c* m_i2c;
-  hal::byte m_address;
+  hal::byte m_address = 0x70;
+  // TODO(#35): Add i2c drivers that automatically handle port switching
+  hal::byte m_port_ownership = 0;       // reserved for future usage
+  hal::byte m_current_port_cached = 0;  // reserved for future usage
 };
 }  // namespace hal::expander
