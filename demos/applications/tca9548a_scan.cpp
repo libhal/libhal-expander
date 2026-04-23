@@ -34,7 +34,9 @@ void application()
   while (true) {
     using namespace std::literals;
     for (std::uint8_t i = 0; i < 8; i++) {
-      i2c_mux.enable_port(i);
+      std::bitset<8> ports{ 0x00 };
+      ports.set(i);
+      i2c_mux.set_ports(ports);
       constexpr hal::byte first_i2c_address = 0x08;
       constexpr hal::byte last_i2c_address = 0x78;
 
