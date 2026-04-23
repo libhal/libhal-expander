@@ -12,6 +12,33 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <memory_resource>
+
+#include <libhal-arm-mcu/dwt_counter.hpp>
+#include <libhal-arm-mcu/startup.hpp>
+#include <libhal-arm-mcu/stm32f1/adc.hpp>
+#include <libhal-arm-mcu/stm32f1/can2.hpp>
+#include <libhal-arm-mcu/stm32f1/clock.hpp>
+#include <libhal-arm-mcu/stm32f1/constants.hpp>
+#include <libhal-arm-mcu/stm32f1/gpio.hpp>
+#include <libhal-arm-mcu/stm32f1/independent_watchdog.hpp>
+#include <libhal-arm-mcu/stm32f1/input_pin.hpp>
+#include <libhal-arm-mcu/stm32f1/output_pin.hpp>
+#include <libhal-arm-mcu/stm32f1/pin.hpp>
+#include <libhal-arm-mcu/stm32f1/spi.hpp>
+#include <libhal-arm-mcu/stm32f1/timer.hpp>
+#include <libhal-arm-mcu/stm32f1/uart.hpp>
+#include <libhal-arm-mcu/stm32f1/usart.hpp>
+#include <libhal-arm-mcu/stm32f1/usb.hpp>
+#include <libhal-arm-mcu/system_control.hpp>
+#include <libhal-util/atomic_spin_lock.hpp>
+#include <libhal-util/bit_bang_i2c.hpp>
+#include <libhal-util/bit_bang_spi.hpp>
+#include <libhal-util/inert_drivers/inert_adc.hpp>
+#include <libhal-util/serial.hpp>
+#include <libhal-util/steady_clock.hpp>
+#include <libhal/pointers.hpp>
+#include <libhal/pwm.hpp>
 #include <libhal/units.hpp>
 
 #include <libhal-arm-mcu/dwt_counter.hpp>
@@ -26,12 +53,17 @@
 
 #include <resource_list.hpp>
 
+using st_peripheral = hal::stm32f1::peripheral;
+
 hal::v5::optional_ptr<hal::steady_clock> clock_ptr;
 hal::v5::optional_ptr<hal::serial> console_ptr;
 hal::v5::optional_ptr<hal::output_pin> status_led_ptr;
 hal::v5::optional_ptr<hal::i2c> i2c_ptr;
 hal::v5::optional_ptr<hal::v5::serial> usb_serial_ptr;
 hal::v5::optional_ptr<hal::v5::serial> v5_console_ptr;
+hal::v5::optional_ptr<hal::stm32f1::gpio<st_peripheral::gpio_a>> gpio_a_ptr;
+hal::v5::optional_ptr<hal::stm32f1::gpio<st_peripheral::gpio_b>> gpio_b_ptr;
+hal::v5::optional_ptr<hal::stm32f1::gpio<st_peripheral::gpio_c>> gpio_c_ptr;
 
 [[noreturn]] void terminate_handler() noexcept
 {
@@ -67,13 +99,12 @@ void initialize_platform()
 
 namespace resources {
 using namespace hal::literals;
+std::array<hal::byte, 1024> driver_memory{};
+std::pmr::monotonic_buffer_resource resource(driver_memory.data(),
+                                             driver_memory.size(),
+                                             std::pmr::null_memory_resource());
 std::pmr::polymorphic_allocator<> driver_allocator()
 {
-  static std::array<hal::byte, 1024> driver_memory{};
-  static std::pmr::monotonic_buffer_resource resource(
-    driver_memory.data(),
-    driver_memory.size(),
-    std::pmr::null_memory_resource());
   return &resource;
 }
 
@@ -128,10 +159,51 @@ hal::v5::strong_ptr<hal::output_pin> status_led()
   return status_led_ptr;
 }
 
+hal::v5::strong_ptr<hal::stm32f1::gpio<st_peripheral::gpio_a>> gpio_a()
+{
+  if (not gpio_a_ptr) {
+    gpio_a_ptr =
+      hal::v5::make_strong_ptr<hal::stm32f1::gpio<st_peripheral::gpio_a>>(
+        driver_allocator());
+  }
+  return gpio_a_ptr;
+}
+
+hal::v5::strong_ptr<hal::stm32f1::gpio<st_peripheral::gpio_b>> gpio_b()
+{
+  if (not gpio_b_ptr) {
+    gpio_b_ptr =
+      hal::v5::make_strong_ptr<hal::stm32f1::gpio<st_peripheral::gpio_b>>(
+        driver_allocator());
+  }
+  return gpio_b_ptr;
+}
+
+hal::v5::strong_ptr<hal::stm32f1::gpio<st_peripheral::gpio_c>> gpio_c()
+{
+  if (not gpio_c_ptr) {
+    gpio_c_ptr =
+      hal::v5::make_strong_ptr<hal::stm32f1::gpio<st_peripheral::gpio_c>>(
+        driver_allocator());
+  }
+  return gpio_c_ptr;
+}
+
 hal::v5::strong_ptr<hal::i2c> i2c()
 {
-  hal::safe_throw(hal::bad_optional_ptr_access(nullptr));
-  // return hal::micromod::v2::i2c();
+  // TODO(#167): Use a version of bit_bang_i2c that accepts strong_ptr's
+  static auto sda_output_pin =
+    hal::acquire_output_pin(driver_allocator(), gpio_b(), 7);
+  static auto scl_output_pin =
+    hal::acquire_output_pin(driver_allocator(), gpio_b(), 6);
+  auto clock = resources::clock();
+  return hal::v5::make_strong_ptr<hal::bit_bang_i2c>(
+    driver_allocator(),
+    hal::bit_bang_i2c::pins{
+      .sda = &(*sda_output_pin),
+      .scl = &(*scl_output_pin),
+    },
+    *clock);
 }
 
 hal::v5::strong_ptr<hal::v5::serial> usb_serial()
